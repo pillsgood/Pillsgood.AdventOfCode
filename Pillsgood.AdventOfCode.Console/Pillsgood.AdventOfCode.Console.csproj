@@ -7,6 +7,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Pillsgood.AdventOfCode\Pillsgood.AdventOfCode.csproj" />
+      <ProjectReference Include="..\Pillsgood.Extensions.Logging\Pillsgood.Extensions.Logging.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,10 +23,6 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>AocResource.resx</DependentUpon>
       </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Pillsgood.Extensions.Logging" Version="0.7.4" />
     </ItemGroup>
 
 </Project>
