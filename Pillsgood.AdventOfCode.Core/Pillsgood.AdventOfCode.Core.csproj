@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Pillsgood.AdventOfCode</_Parameter1>
+        </AssemblyAttribute>
+      <ProjectReference Include="..\Pillsgood.AdventOfCode.Abstractions\Pillsgood.AdventOfCode.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
+    </ItemGroup>
+    
+</Project>
