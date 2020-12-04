@@ -78,8 +78,16 @@ namespace Pillsgood.AdventOfCode.Core
                                 _console?.WriteAnswerNotImplemented();
                                 continue;
                             case WebException webException:
-                                _console?.WriteNoSessionId();
-                                _console?.WriteException(webException);
+                                if (_console != null)
+                                {
+                                    _console?.WriteNoSessionId();
+                                    _console?.WriteException(webException);
+                                }
+                                else
+                                {
+                                    throw;
+                                }
+
                                 Environment.Exit(-1);
                                 break;
                         }
