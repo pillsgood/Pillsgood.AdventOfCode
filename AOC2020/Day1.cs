@@ -24,7 +24,6 @@ namespace AOC2020
         [Part(1)]
         private string Part1(IPuzzleInput<IEnumerable<int>> input)
         {
-            int? answer = null;
             var entries = input.Value.ToArray();
             for (var i = 0; i < entries.Length; i++)
             for (var j = i + 1; j < entries.Length; j++)
@@ -32,17 +31,17 @@ namespace AOC2020
                 var sum = entries[i] + entries[j];
                 if (sum == 2020)
                 {
-                    answer = entries[i] * entries[j];
+                    var answer = entries[i] * entries[j];
+                    return answer.ToString();
                 }
             }
 
-            return answer?.ToString();
+            return null;
         }
 
         [Part(2)]
         private string Part2(IPuzzleInput<IEnumerable<int>> input)
         {
-            int? answer = null;
             var entries = input.Value.ToArray();
             for (var i = 0; i < entries.Length; i++)
             for (var j = i + 1; j < entries.Length; j++)
@@ -51,11 +50,12 @@ namespace AOC2020
                 var sum = entries[i] + entries[j] + entries[k];
                 if (sum == 2020)
                 {
-                    answer = entries[i] * entries[j] * entries[k];
+                    var answer = entries[i] * entries[j] * entries[k];
+                    return answer.ToString();
                 }
             }
 
-            return answer?.ToString();
+            return null;
         }
     }
 }
