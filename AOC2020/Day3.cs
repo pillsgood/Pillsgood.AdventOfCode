@@ -55,7 +55,7 @@ namespace AOC2020
                 return map;
             }
 
-            public BigInteger TraverseMapAndCount(int right, int down)
+            public long TraverseMapAndCount(int right, int down)
             {
                 var i = right;
                 var treeCount = 0;
