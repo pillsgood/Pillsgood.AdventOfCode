@@ -91,8 +91,6 @@ namespace AOC2020
         [Part(2)]
         private string Part2(IEnumerable<Seat> seats)
         {
-            Console.WriteLine("RUN!");
-            
             var sorted = seats.Select(seat => seat.SeatId).ToList();
             sorted.Sort();
             var foundSeat = new List<int>();

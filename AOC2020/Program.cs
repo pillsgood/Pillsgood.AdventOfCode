@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using Pillsgood.AdventOfCode;
 using Pillsgood.AdventOfCode.Console;
 
@@ -8,6 +9,8 @@ namespace AOC2020
     {
         private static void Main(string[] args)
         {
+            Environment.ExitCode = 1;
+
             var aoc = AdventOfCode.Build(config => config
                 .ConfigureServices(ConfigureServices)
                 .LoadCallingAssembly()

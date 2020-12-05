@@ -89,7 +89,7 @@ namespace Pillsgood.AdventOfCode.Console
 
         public void WriteDay(int day)
         {
-            WriteHeader($"Day {day}", AocResource.HeaderLong, Color.Lime, Color.OliveDrab);
+            WriteHeader($"Day {day}", AocResource.HeaderLong, Color.Lime, Color.Green);
         }
 
         public void WriteAnswer(string answer)
