@@ -22,7 +22,7 @@ namespace Pillsgood.AdventOfCode.Core
             _serviceProvider = new AutofacServiceProvider(_aocLifetimeManager.container);
         }
 
-        public IEnumerable<KeyValuePair<PuzzleInfo, string[]>> Run(int? year = null, int? day = null)
+        public IEnumerable<KeyValuePair<PuzzleInfo, IEnumerable<string>>> Run(int? year = null, int? day = null)
         {
             var puzzles = _aocLifetimeManager.RegisteredPuzzles.Where(identification =>
             {
@@ -39,11 +39,17 @@ namespace Pillsgood.AdventOfCode.Core
 
                 return valid;
             }).ToArray();
+            var result = Run(puzzles);
 
-            return Run(puzzles).ToArray();
+            if (_console != null)
+            {
+                result = result.ToArray();
+            }
+
+            return result;
         }
 
-        private IEnumerable<KeyValuePair<PuzzleInfo, string[]>> Run(
+        private IEnumerable<KeyValuePair<PuzzleInfo, IEnumerable<string>>> Run(
             params IPuzzleInfo[] puzzleInfos)
         {
             foreach (var puzzleInfo in puzzleInfos)
@@ -52,36 +58,48 @@ namespace Pillsgood.AdventOfCode.Core
                 _console?.WriteYear(info.Year);
                 _console?.WriteDay(info.Day);
                 var partsHandle = _aocLifetimeManager.GetSolveHandle(puzzleInfo);
-                var part = 1;
-                var answers = new List<string>();
-                foreach (var handle in partsHandle)
+                var answers = EvaluateAnswer(partsHandle);
+                if (_console != null)
                 {
-                    _console?.WritePart(part++);
+                    answers = answers.ToArray();
+                }
 
+                yield return new KeyValuePair<PuzzleInfo, IEnumerable<string>>(info, answers);
+            }
+
+            _console?.PrintSeparator();
+        }
+
+        private IEnumerable<string> EvaluateAnswer(IEnumerable<Func<string>> handles)
+        {
+            var part = 1;
+            foreach (var answer in handles.Select(handle => handle.Invoke()))
+            {
+                if (_console != null)
+                {
+                    _console.WritePart(part++);
                     try
                     {
-                        var answer = handle.Invoke();
                         if (answer == null)
                         {
-                            _console?.WriteAnswerIsNull();
+                            _console.WriteAnswerIsNull();
                             continue;
                         }
 
-                        _console?.WriteAnswer(answer);
-                        answers.Add(answer);
+                        _console.WriteAnswer(answer);
                     }
                     catch (TargetInvocationException e)
                     {
                         switch (e.InnerException)
                         {
                             case NotImplementedException _:
-                                _console?.WriteAnswerNotImplemented();
+                                _console.WriteAnswerNotImplemented();
                                 continue;
                             case WebException webException:
                                 if (_console != null)
                                 {
-                                    _console?.WriteNoSessionId();
-                                    _console?.WriteException(webException);
+                                    _console.WriteNoSessionId();
+                                    _console.WriteException(webException);
                                 }
                                 else
                                 {
@@ -92,16 +110,13 @@ namespace Pillsgood.AdventOfCode.Core
                                 break;
                         }
 
-
                         if (e.InnerException != null) throw e.InnerException;
                         throw;
                     }
                 }
 
-                yield return new KeyValuePair<PuzzleInfo, string[]>(info, answers.ToArray());
+                yield return answer;
             }
-
-            _console?.PrintSeparator();
         }
     }
 }

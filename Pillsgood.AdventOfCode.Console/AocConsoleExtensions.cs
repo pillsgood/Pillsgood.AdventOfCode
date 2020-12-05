@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Pillsgood.AdventOfCode.Abstractions;
 using Pillsgood.Extensions.Logging;
 
+
 namespace Pillsgood.AdventOfCode.Console
 {
     public static class AocConsoleExtensions
@@ -13,7 +14,7 @@ namespace Pillsgood.AdventOfCode.Console
             var config = new AocConsoleConfig();
             configure?.Invoke(config);
 
-            aocConfig.ConfigureServices += collection =>
+            aocConfig.Services += collection =>
             {
                 collection.AddLogging(builder => builder.AddAnsiConsoleWriter());
                 collection.TryAddSingleton<IAocConsole, AocConsole>();

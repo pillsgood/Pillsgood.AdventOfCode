@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -14,55 +15,42 @@ namespace Pillsgood.AdventOfCode
     {
         private readonly AocConfig _aocConfig;
         private readonly AocLifetimeManager _lifetimeManager;
-        
 
         private bool OneYear => _aocConfig.Year.HasValue && _aocConfig.Year.Value > 2000;
 
-        private AdventOfCode(AocConfig aocConfig, AocLifetimeManager lifetimeManager, IAocConsole aocConsole  = null)
+        private AdventOfCode(AocConfig aocConfig, AocLifetimeManager lifetimeManager, IAocConsole aocConsole = null)
         {
             _aocConfig = aocConfig;
             _lifetimeManager = lifetimeManager;
             aocConsole?.StartUpMessage();
         }
 
-        public static AdventOfCode Build(AocConfig aocConfig)
+        public static IPuzzleRunner Build(Action<AocConfig> configure)
         {
+            var config = new AocConfig();
+            configure.Invoke(config);
             var services = new ServiceCollection();
-            aocConfig.ConfigureServices.Invoke(services);
+            config.Services.Invoke(services);
 
             var lifetimeManager = AocLifetimeManager.Build(builder =>
             {
-                builder.RegisterInstance(aocConfig).SingleInstance();
+                builder.RegisterInstance(config).SingleInstance();
                 builder.RegisterType<AdventOfCode>().SingleInstance().FindConstructorsWith(new AllConstructorFinder());
                 builder.Populate(services);
             });
 
-            return lifetimeManager.container.Resolve<AdventOfCode>();
+            return lifetimeManager.container.Resolve<AdventOfCode>().Load(config.assemblies);
         }
 
 
-        private IPuzzleRunner GetRunner()
-        {
-            return _lifetimeManager.CreateRunner();
-        }
-
-        public IPuzzleRunner Load()
-        {
-            var assemblies = new[] { Assembly.GetCallingAssembly() };
-            assemblies = assemblies.Concat(assemblies[0].GetReferencedAssemblies().Select(Assembly.Load).Where(
-                assembly => assembly.GetCustomAttribute<AocYearAttribute>() != null)).ToArray();
-            Load(assemblies);
-            return GetRunner();
-        }
-
-        public IPuzzleRunner Load(params Assembly[] assemblies)
+        private IPuzzleRunner Load(IEnumerable<Assembly> assemblies)
         {
             foreach (var assembly in assemblies)
             {
                 RegisterPuzzles(assembly);
             }
 
-            return GetRunner();
+            return _lifetimeManager.CreateRunner();
         }
 
         private void RegisterPuzzles(Assembly assembly)

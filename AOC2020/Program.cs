@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Pillsgood.AdventOfCode;
 using Pillsgood.AdventOfCode.Console;
 
@@ -7,18 +6,15 @@ namespace AOC2020
 {
     internal static class Program
     {
-        private static async Task Main(string[] args)
+        private static void Main(string[] args)
         {
-            var aoc = AdventOfCode.Build(new AocConfig
-            {
-                ConfigureServices = ConfigureServices,
-            }.AddConsole());
+            var aoc = AdventOfCode.Build(config => config
+                .ConfigureServices(ConfigureServices)
+                .LoadCallingAssembly()
+                .AddConsole());
 
-            var runner = aoc.Load();
-            runner.Run();
-            
-            // in case program terminates before console can finish writing
-            // await Task.Delay(-1);
+            // adding console with force aggregate results of answers, otherwise iterate through the return value of runner.Run()
+            aoc.Run();
         }
 
         private static void ConfigureServices(IServiceCollection services)
