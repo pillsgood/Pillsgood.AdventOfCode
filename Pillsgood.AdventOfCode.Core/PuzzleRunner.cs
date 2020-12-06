@@ -73,46 +73,46 @@ namespace Pillsgood.AdventOfCode.Core
         private IEnumerable<string> EvaluateAnswer(IEnumerable<Func<string>> handles)
         {
             var part = 1;
-            foreach (var answer in handles.Select(handle => handle.Invoke()))
+            foreach (var handle in handles)
             {
-                if (_console != null)
+                string answer;
+
+                try
                 {
-                    _console.WritePart(part++);
-                    try
+                    answer = handle.Invoke();
+                    _console?.WritePart(part++);
+                    if (answer == null)
                     {
-                        if (answer == null)
-                        {
-                            _console.WriteAnswerIsNull();
+                        _console?.WriteAnswerIsNull();
+                        continue;
+                    }
+
+                    _console?.WriteAnswer(answer);
+                }
+                catch (TargetInvocationException e)
+                {
+                    switch (e.InnerException)
+                    {
+                        case NotImplementedException _:
+                            _console?.WriteAnswerNotImplemented();
                             continue;
-                        }
+                        case WebException webException:
+                            if (_console != null)
+                            {
+                                _console.WriteNoSessionId();
+                                _console.WriteException(webException);
+                            }
+                            else
+                            {
+                                throw;
+                            }
 
-                        _console.WriteAnswer(answer);
+                            Environment.Exit(1);
+                            break;
                     }
-                    catch (TargetInvocationException e)
-                    {
-                        switch (e.InnerException)
-                        {
-                            case NotImplementedException _:
-                                _console.WriteAnswerNotImplemented();
-                                continue;
-                            case WebException webException:
-                                if (_console != null)
-                                {
-                                    _console.WriteNoSessionId();
-                                    _console.WriteException(webException);
-                                }
-                                else
-                                {
-                                    throw;
-                                }
 
-                                Environment.Exit(-1);
-                                break;
-                        }
-
-                        if (e.InnerException != null) throw e.InnerException;
-                        throw;
-                    }
+                    if (e.InnerException != null) throw e.InnerException;
+                    throw;
                 }
 
                 yield return answer;
