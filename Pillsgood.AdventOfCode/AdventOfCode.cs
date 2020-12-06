@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,19 +8,23 @@ using Pillsgood.AdventOfCode.Core;
 
 namespace Pillsgood.AdventOfCode
 {
-    public class AdventOfCode
+    public class AdventOfCode : IPuzzleRunner
     {
-        private readonly AocConfig _aocConfig;
-        private readonly AocLifetimeManager _lifetimeManager;
-        
-        private AdventOfCode(AocConfig aocConfig, AocLifetimeManager lifetimeManager, IAocConsole aocConsole = null)
+        private readonly IPuzzleRunner _puzzleRunnerImplementation;
+        private AdventOfCode(AocLifetimeManager lifetimeManager, IAocConsole aocConsole = null)
         {
-            _aocConfig = aocConfig;
-            _lifetimeManager = lifetimeManager;
+            _puzzleRunnerImplementation = lifetimeManager.ResolveRunner();
             aocConsole?.StartUpMessage();
         }
 
-        public static IPuzzleRunner Build(Action<AocConfig> configure)
+        public IEnumerable<KeyValuePair<PuzzleData, IEnumerable<string>>> Run(int? year = null, int? day = null)
+        {
+            return _puzzleRunnerImplementation.Run(year, day);
+        }
+
+        public IServiceProvider ServiceProvider => _puzzleRunnerImplementation.ServiceProvider;
+
+        public static AdventOfCode Build(Action<AocConfig> configure)
         {
             var config = new AocConfig();
             configure.Invoke(config);
@@ -33,13 +38,7 @@ namespace Pillsgood.AdventOfCode
                 builder.Populate(services);
             });
 
-            return lifetimeManager.container.Resolve<AdventOfCode>().Load();
-        }
-
-
-        private IPuzzleRunner Load()
-        {
-            return _lifetimeManager.CreateRunner();
+            return lifetimeManager.container.Resolve<AdventOfCode>();
         }
     }
 }
