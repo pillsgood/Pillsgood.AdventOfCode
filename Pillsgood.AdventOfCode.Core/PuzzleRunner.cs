@@ -3,79 +3,91 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Autofac.Features.Metadata;
 using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Core
 {
-    public class PuzzleRunner : IPuzzleRunner
+    internal class PuzzleRunner : IPuzzleRunner
     {
-        private readonly AocLifetimeManager _aocLifetimeManager;
+        public delegate PuzzleRunner Factory(ILifetimeScope puzzleScope);
+
+        private readonly PartsHandle.Factory _handleFactory;
+        private readonly IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> _metaPuzzles;
         private readonly IAocConsole _console;
         private readonly IServiceProvider _serviceProvider;
         public IServiceProvider ServiceProvider => _serviceProvider;
 
-        internal PuzzleRunner(AocLifetimeManager aocLifetimeManager, IAocConsole console = null)
+        internal PuzzleRunner(ILifetimeScope scope,
+            IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles,
+            PartsHandle.Factory handleFactory,
+            IAocConsole console = null)
         {
-            _aocLifetimeManager = aocLifetimeManager;
+            _metaPuzzles = metaPuzzles;
+            _handleFactory = handleFactory;
             _console = console;
-            _serviceProvider = new AutofacServiceProvider(_aocLifetimeManager.container);
+            _serviceProvider = new AutofacServiceProvider(scope);
         }
 
-        public IEnumerable<KeyValuePair<PuzzleInfo, IEnumerable<string>>> Run(int? year = null, int? day = null)
+        public IEnumerable<KeyValuePair<PuzzleData, IEnumerable<string>>> Run(int? year = null, int? day = null)
         {
-            var puzzles = _aocLifetimeManager.RegisteredPuzzles.Where(identification =>
+            var metaPuzzles = _metaPuzzles.Where(puzzle =>
             {
+                var metaData = puzzle.Metadata;
                 var valid = true;
                 if (year.HasValue)
                 {
-                    valid = valid && identification.Year == year;
+                    valid = valid && metaData.Year == year;
                 }
 
                 if (day.HasValue)
                 {
-                    valid = valid && identification.Day == day;
+                    valid = valid && metaData.Day == day;
                 }
 
                 return valid;
-            }).ToArray();
-            var result = Run(puzzles);
+            }).OrderBy(meta => meta.Metadata.year).ThenBy(meta => meta.Metadata.day);
+
+            var results = Run(metaPuzzles);
 
             if (_console != null)
             {
-                result = result.ToArray();
+                results = results as KeyValuePair<PuzzleData, IEnumerable<string>>[] ?? results.ToArray();
             }
 
-            return result;
+            return results;
         }
 
-        private IEnumerable<KeyValuePair<PuzzleInfo, IEnumerable<string>>> Run(
-            params IPuzzleInfo[] puzzleInfos)
+        private IEnumerable<KeyValuePair<PuzzleData, IEnumerable<string>>> Run(
+            IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles)
         {
-            foreach (var puzzleInfo in puzzleInfos)
+            foreach (var metaPuzzle in metaPuzzles)
             {
-                var info = puzzleInfo.ToPuzzleInfo();
-                _console?.WriteYear(info.Year);
-                _console?.WriteDay(info.Day);
-                var partsHandle = _aocLifetimeManager.GetSolveHandle(puzzleInfo);
-                var answers = RunParts(partsHandle);
+                _console?.WriteYear(metaPuzzle.Metadata.Year);
+                _console?.WriteDay(metaPuzzle.Metadata.Day);
+                var handles = _handleFactory.Invoke(metaPuzzle).Values;
+                var answers = RunParts(handles);
                 if (_console != null)
                 {
                     answers = answers.ToArray();
                 }
 
-                yield return new KeyValuePair<PuzzleInfo, IEnumerable<string>>(info, answers);
+                yield return
+                    new KeyValuePair<PuzzleData, IEnumerable<string>>(new PuzzleData(metaPuzzle.Metadata), answers);
             }
 
             _console?.PrintSeparator();
         }
 
-        private IEnumerable<string> RunParts(IEnumerable<Func<string>> handles)
+        private IEnumerable<string> RunParts(IEnumerable<PartsHandle.ScopeHandle> handles)
         {
             var part = 1;
             foreach (var handle in handles)
             {
-                if (EvaluateAnswer(handle, out var answer, ref part)) continue;
+                using var scope = handle.Invoke(out var partHandle);
+                if (EvaluateAnswer(partHandle, out var answer, ref part)) continue;
                 yield return answer;
             }
         }
@@ -85,8 +97,8 @@ namespace Pillsgood.AdventOfCode.Core
             answer = null;
             try
             {
-                answer = handle.Invoke();
                 _console?.WritePart(part++);
+                answer = handle.Invoke();
                 if (answer == null)
                 {
                     _console?.WriteAnswerIsNull();

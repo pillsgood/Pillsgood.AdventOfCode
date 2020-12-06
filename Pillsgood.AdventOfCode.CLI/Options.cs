@@ -1,10 +1,9 @@
 ﻿using System;
 using CommandLine;
-using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.CLI
 {
-    public class Options : IPuzzleInfo
+    public class Options
     {
         public Options(int? year, int? day, int? part, string aocSessionId)
         {

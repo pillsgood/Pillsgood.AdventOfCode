@@ -3,12 +3,12 @@ using Autofac.Core;
 
 namespace Pillsgood.AdventOfCode.Core
 {
-    internal class PuzzleModuleFactory
+    internal static class PuzzleModuleFactory
     {
-        public IModule Create(Type puzzleType)
+        public static IModule Create(PuzzleMetadata metadata)
         {
             var moduleType = typeof(PuzzleModule<>);
-            moduleType = moduleType.MakeGenericType(puzzleType);
+            moduleType = moduleType.MakeGenericType(metadata.Type);
             return (IModule) Activator.CreateInstance(moduleType);
         }
     }
