@@ -20,7 +20,7 @@ namespace Pillsgood.AdventOfCode.Core
                 foreach (var puzzleType in assembly.GetTypes()
                     .Where(type => type.GetInterfaces().Contains(typeof(IPuzzle))))
                 {
-                    _builder += builder => builder.RegisterType(puzzleType)
+                    _builder += builder => builder.RegisterType(puzzleType).As<IPuzzle>()
                         .WithMetadata(metadataConfiguration.From(puzzleType));
                 }
             }

@@ -5,26 +5,27 @@ using System.Net;
 using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Autofac.Features.Metadata;
 using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Core
 {
     internal class PuzzleRunner : IPuzzleRunner
     {
-        public delegate IPuzzleRunner Factory(ILifetimeScope puzzleScope);
+        public delegate PuzzleRunner Factory(ILifetimeScope puzzleScope);
 
         private readonly PartsHandle.Factory _handleFactory;
-        private readonly IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> _puzzles;
+        private readonly IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> _metaPuzzles;
         private readonly IAocConsole _console;
         private readonly IServiceProvider _serviceProvider;
         public IServiceProvider ServiceProvider => _serviceProvider;
 
         internal PuzzleRunner(ILifetimeScope scope,
-            IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> puzzles,
+            IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles,
             PartsHandle.Factory handleFactory,
             IAocConsole console = null)
         {
-            _puzzles = puzzles;
+            _metaPuzzles = metaPuzzles;
             _handleFactory = handleFactory;
             _console = console;
             _serviceProvider = new AutofacServiceProvider(scope);
@@ -32,7 +33,7 @@ namespace Pillsgood.AdventOfCode.Core
 
         public IEnumerable<KeyValuePair<PuzzleData, IEnumerable<string>>> Run(int? year = null, int? day = null)
         {
-            var puzzles = _puzzles.Where(puzzle =>
+            var metaPuzzles = _metaPuzzles.Where(puzzle =>
             {
                 var metaData = puzzle.Metadata;
                 var valid = true;
@@ -47,26 +48,26 @@ namespace Pillsgood.AdventOfCode.Core
                 }
 
                 return valid;
-            });
+            }).OrderBy(meta => meta.Metadata.year).ThenBy(meta => meta.Metadata.day);
 
-            var result = Run(puzzles);
+            var results = Run(metaPuzzles);
 
             if (_console != null)
             {
-                result = result.ToArray();
+                results = results as KeyValuePair<PuzzleData, IEnumerable<string>>[] ?? results.ToArray();
             }
 
-            return result;
+            return results;
         }
 
         private IEnumerable<KeyValuePair<PuzzleData, IEnumerable<string>>> Run(
-            IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> puzzles)
+            IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles)
         {
-            foreach (var puzzle in puzzles)
+            foreach (var metaPuzzle in metaPuzzles)
             {
-                _console?.WriteYear(puzzle.Metadata.Year);
-                _console?.WriteDay(puzzle.Metadata.Day);
-                var handles = _handleFactory.Invoke(puzzle).Values;
+                _console?.WriteYear(metaPuzzle.Metadata.Year);
+                _console?.WriteDay(metaPuzzle.Metadata.Day);
+                var handles = _handleFactory.Invoke(metaPuzzle).Values;
                 var answers = RunParts(handles);
                 if (_console != null)
                 {
@@ -74,7 +75,7 @@ namespace Pillsgood.AdventOfCode.Core
                 }
 
                 yield return
-                    new KeyValuePair<PuzzleData, IEnumerable<string>>(new PuzzleData(puzzle.Metadata), answers);
+                    new KeyValuePair<PuzzleData, IEnumerable<string>>(new PuzzleData(metaPuzzle.Metadata), answers);
             }
 
             _console?.PrintSeparator();

@@ -1,6 +1,5 @@
 ﻿using System;
 using CommandLine;
-using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.CLI
 {

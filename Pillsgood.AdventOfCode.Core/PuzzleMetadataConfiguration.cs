@@ -24,11 +24,11 @@ namespace Pillsgood.AdventOfCode.Core
         public Action<MetadataConfiguration<PuzzleMetadata>> From(Type type)
         {
             var metadata = type.GetCustomAttribute<PuzzleAttribute>()?.metadata ?? new PuzzleMetadata();
-            metadata.type = type;
+            metadata.Type = type;
             metadata.year ??= _assemblyYear ?? GetYear(type);
             metadata.day ??= GetDay(type);
             return configuration => configuration
-                .For(puzzleMetadata => puzzleMetadata.type, type)
+                .For(puzzleMetadata => puzzleMetadata.Type, type)
                 .For(puzzleMetadata => puzzleMetadata.Year, metadata.Year)
                 .For(puzzleMetadata => puzzleMetadata.Day, metadata.Day);
         }

@@ -8,7 +8,7 @@ namespace Pillsgood.AdventOfCode.Core
         public static IModule Create(PuzzleMetadata metadata)
         {
             var moduleType = typeof(PuzzleModule<>);
-            moduleType = moduleType.MakeGenericType(metadata.type);
+            moduleType = moduleType.MakeGenericType(metadata.Type);
             return (IModule) Activator.CreateInstance(moduleType);
         }
     }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,9 +11,7 @@ namespace Pillsgood.AdventOfCode
     {
         private readonly AocConfig _aocConfig;
         private readonly AocLifetimeManager _lifetimeManager;
-
-        private bool OneYear => _aocConfig.Year.HasValue && _aocConfig.Year.Value > 2000;
-
+        
         private AdventOfCode(AocConfig aocConfig, AocLifetimeManager lifetimeManager, IAocConsole aocConsole = null)
         {
             _aocConfig = aocConfig;

@@ -1,26 +1,26 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Autofac;
+using Autofac.Features.Metadata;
 using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Core
 {
     internal class PartsHandle : IDisposable
     {
-        public delegate PartsHandle Factory(Lazy<IPuzzle, PuzzleMetadata> puzzle);
+        public delegate PartsHandle Factory(Lazy<IPuzzle, PuzzleMetadata> metaPuzzle);
 
         public delegate IDisposable ScopeHandle(out Func<string> partHandle);
 
         private readonly ILifetimeScope _scope;
         public IEnumerable<ScopeHandle> Values { get; }
 
-        public PartsHandle(Lazy<IPuzzle, PuzzleMetadata> puzzle, AocLifetimeManager lifetimeManager)
+        public PartsHandle(Lazy<IPuzzle, PuzzleMetadata> metaPuzzle, AocLifetimeManager lifetimeManager)
         {
-            _scope = lifetimeManager.GetPuzzleScope(puzzle.Metadata);
-            var puzzleInstance = puzzle.Value;
+            _scope = lifetimeManager.GetPuzzleScope(metaPuzzle.Metadata);
+            var puzzleInstance = metaPuzzle.Value;
             var parts = GetPartMethodInfos(puzzleInstance);
             Values = parts.Select<KeyValuePair<int, MethodInfo>, ScopeHandle>(pair =>
                 (out Func<string> handle) =>
