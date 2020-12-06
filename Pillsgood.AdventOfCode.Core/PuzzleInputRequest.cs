@@ -67,7 +67,17 @@ namespace Pillsgood.AdventOfCode.Core
                 var request = WebRequest.CreateHttp(url);
                 request.Headers["Cookie"] = _sessionValue;
 
-                var response = request.GetResponse();
+                WebResponse response;
+                try
+                {
+                    response = request.GetResponse();
+                }
+                catch (WebException)
+                {
+                    throw new WebException(
+                        "AOC Session ID could be missing, ensure you have set AOC_SESSION in your environment variables");
+                }
+
                 using var dataStream = response.GetResponseStream();
                 if (dataStream == null)
                 {

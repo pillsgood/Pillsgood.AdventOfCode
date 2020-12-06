@@ -58,7 +58,7 @@ namespace Pillsgood.AdventOfCode.Core
                 _console?.WriteYear(info.Year);
                 _console?.WriteDay(info.Day);
                 var partsHandle = _aocLifetimeManager.GetSolveHandle(puzzleInfo);
-                var answers = EvaluateAnswer(partsHandle);
+                var answers = RunParts(partsHandle);
                 if (_console != null)
                 {
                     answers = answers.ToArray();
@@ -70,53 +70,58 @@ namespace Pillsgood.AdventOfCode.Core
             _console?.PrintSeparator();
         }
 
-        private IEnumerable<string> EvaluateAnswer(IEnumerable<Func<string>> handles)
+        private IEnumerable<string> RunParts(IEnumerable<Func<string>> handles)
         {
             var part = 1;
             foreach (var handle in handles)
             {
-                string answer;
-
-                try
-                {
-                    answer = handle.Invoke();
-                    _console?.WritePart(part++);
-                    if (answer == null)
-                    {
-                        _console?.WriteAnswerIsNull();
-                        continue;
-                    }
-
-                    _console?.WriteAnswer(answer);
-                }
-                catch (TargetInvocationException e)
-                {
-                    switch (e.InnerException)
-                    {
-                        case NotImplementedException _:
-                            _console?.WriteAnswerNotImplemented();
-                            continue;
-                        case WebException webException:
-                            if (_console != null)
-                            {
-                                _console.WriteNoSessionId();
-                                _console.WriteException(webException);
-                            }
-                            else
-                            {
-                                throw;
-                            }
-
-                            Environment.Exit(1);
-                            break;
-                    }
-
-                    if (e.InnerException != null) throw e.InnerException;
-                    throw;
-                }
-
+                if (EvaluateAnswer(handle, out var answer, ref part)) continue;
                 yield return answer;
             }
+        }
+
+        private bool EvaluateAnswer(Func<string> handle, out string answer, ref int part)
+        {
+            answer = null;
+            try
+            {
+                answer = handle.Invoke();
+                _console?.WritePart(part++);
+                if (answer == null)
+                {
+                    _console?.WriteAnswerIsNull();
+                    return true;
+                }
+
+                _console?.WriteAnswer(answer);
+            }
+            catch (TargetInvocationException e)
+            {
+                switch (e.InnerException)
+                {
+                    case NotImplementedException _:
+                        _console?.WriteAnswerNotImplemented();
+                        return true;
+                    case WebException webException:
+                        if (_console != null)
+                        {
+                            _console.WriteNoSessionId();
+                            _console.WriteException(webException);
+                        }
+                        else
+                        {
+                            throw e.InnerException;
+                        }
+
+                        Environment.Exit(1);
+                        break;
+                }
+
+                if (e.InnerException != null) throw e.InnerException;
+                throw;
+            }
+
+            return false;
         }
     }
 }
