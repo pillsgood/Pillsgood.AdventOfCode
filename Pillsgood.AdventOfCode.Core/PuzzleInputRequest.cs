@@ -5,12 +5,12 @@ using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Core
 {
-    public class PuzzleInputRequest : IPuzzleInput
+    internal class PuzzleInputRequest : IPuzzleInput
     {
         private readonly int _year;
         private readonly int _day;
 
-        public PuzzleInputRequest(int year, int day)
+        private PuzzleInputRequest(int year, int day)
         {
             _year = year;
             _day = day;
@@ -32,10 +32,9 @@ namespace Pillsgood.AdventOfCode.Core
                 _sessionValue = $"session={Environment.GetEnvironmentVariable("AOC_SESSION")}";
             }
 
-            public IPuzzleInput Create(IPuzzleInfo puzzleInfo)
+            public IPuzzleInput Create(PuzzleMetadata metadata)
             {
-                var info = puzzleInfo.ToPuzzleInfo();
-                return Create(info.Year, info.Day);
+                return Create(metadata.Year, metadata.Day);
             }
 
             public IPuzzleInput Create(string year, int day)
