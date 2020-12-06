@@ -11,29 +11,30 @@ namespace Pillsgood.AdventOfCode
     public class AdventOfCode : IPuzzleRunner
     {
         private readonly IPuzzleRunner _puzzleRunnerImplementation;
+
         private AdventOfCode(AocLifetimeManager lifetimeManager, IAocConsole aocConsole = null)
         {
             _puzzleRunnerImplementation = lifetimeManager.ResolveRunner();
             aocConsole?.StartUpMessage();
         }
 
-        public IEnumerable<KeyValuePair<PuzzleData, IEnumerable<string>>> Run(int? year = null, int? day = null)
+        public IEnumerable<PuzzleData> Run(int? year = null, int? day = null)
         {
             return _puzzleRunnerImplementation.Run(year, day);
         }
 
         public IServiceProvider ServiceProvider => _puzzleRunnerImplementation.ServiceProvider;
 
-        public static AdventOfCode Build(Action<AocConfig> configure)
+        public static AdventOfCode Build(Action<AocConfigBuilder> configure)
         {
-            var config = new AocConfig();
-            configure.Invoke(config);
+            var configBuilder = new AocConfigBuilder();
+            configure.Invoke(configBuilder);
             var services = new ServiceCollection();
-            config.Services.Invoke(services);
+            configBuilder.config.Services.Invoke(services);
 
             var lifetimeManager = AocLifetimeManager.Build(builder =>
             {
-                builder.RegisterInstance(config).SingleInstance();
+                builder.RegisterInstance(configBuilder.config).As<IAocConfig>().SingleInstance();
                 builder.RegisterType<AdventOfCode>().SingleInstance().FindConstructorsWith(new AllConstructorFinder());
                 builder.Populate(services);
             });

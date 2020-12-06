@@ -19,6 +19,8 @@ namespace Pillsgood.AdventOfCode.Core
                 puzzleContainerBuilder.Configure(builder);
                 builder.RegisterType<PuzzleRunner>()
                     .FindConstructorsWith(new AllConstructorFinder());
+                builder.RegisterType<PuzzleDataManager>().SingleInstance();
+                builder.RegisterType<PuzzleInputFactory>().SingleInstance();
             });
             _runnerFactory = _lifetimeScope.Resolve<PuzzleRunner.Factory>();
         }
@@ -30,7 +32,6 @@ namespace Pillsgood.AdventOfCode.Core
             var containerBuilder = new ContainerBuilder();
             buildServices.Invoke(containerBuilder);
             containerBuilder.RegisterType<Random>().SingleInstance();
-            containerBuilder.RegisterType<PuzzleInputRequest.Factory>().SingleInstance();
             containerBuilder.RegisterType<AocLifetimeManager>().SingleInstance()
                 .FindConstructorsWith(new AllConstructorFinder());
             containerBuilder.RegisterType<PuzzleContainerBuilder>();
@@ -45,8 +46,8 @@ namespace Pillsgood.AdventOfCode.Core
             return _lifetimeScope.BeginLifetimeScope(builder =>
             {
                 builder.RegisterModule(PuzzleModuleFactory.Create(metadata));
-                builder.Register(context => context.Resolve<PuzzleInputRequest.Factory>()
-                    .Create(metadata)).SingleInstance();
+                builder.Register(context => context.Resolve<PuzzleInputFactory>()
+                    .Create(metadata)).As<IPuzzleInput>().SingleInstance();
             });
         }
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Autofac;
-using Autofac.Features.Metadata;
 using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Core
@@ -12,7 +11,7 @@ namespace Pillsgood.AdventOfCode.Core
     {
         public delegate PartsHandle Factory(Lazy<IPuzzle, PuzzleMetadata> metaPuzzle);
 
-        public delegate IDisposable ScopeHandle(out Func<string> partHandle);
+        public delegate IDisposable ScopeHandle(out Func<string> partHandle, out int part);
 
         private readonly ILifetimeScope _scope;
         public IEnumerable<ScopeHandle> Values { get; }
@@ -23,9 +22,10 @@ namespace Pillsgood.AdventOfCode.Core
             var puzzleInstance = metaPuzzle.Value;
             var parts = GetPartMethodInfos(puzzleInstance);
             Values = parts.Select<KeyValuePair<int, MethodInfo>, ScopeHandle>(pair =>
-                (out Func<string> handle) =>
+                (out Func<string> handle, out int part) =>
                 {
                     var partScope = _scope.BeginLifetimeScope();
+                    part = pair.Key;
                     handle = InjectParameters(partScope, puzzleInstance, pair.Value);
                     return partScope;
                 });

@@ -4,8 +4,8 @@ namespace Pillsgood.AdventOfCode.Abstractions
 {
     internal interface IPuzzleMetadata : IEquatable<IPuzzleMetadata>
     {
-        public int Day { get; set; }
-        public int Year { get; set; }
+        public int Day { get; }
+        public int Year { get; }
 
         bool IEquatable<IPuzzleMetadata>.Equals(IPuzzleMetadata other)
         {

@@ -7,19 +7,19 @@ using Pillsgood.Extensions.Logging;
 
 namespace Pillsgood.AdventOfCode.Console
 {
-    public static class AocConsoleExtensions
+    public static class AocConfigExtensions
     {
-        public static AocConfig AddConsole(this AocConfig aocConfig, Action<AocConsoleConfig> configure = null)
+        public static AocConfigBuilder AddConsole(this AocConfigBuilder aocConfig, Action<AocConsoleConfig> configure = null)
         {
             var config = new AocConsoleConfig();
             configure?.Invoke(config);
 
-            aocConfig.Services += collection =>
+            aocConfig.ConfigureServices(collection =>
             {
                 collection.AddLogging(builder => builder.AddAnsiConsoleWriter());
                 collection.TryAddSingleton<IAocConsole, AocConsole>();
                 collection.TryAddSingleton(config);
-            };
+            });
 
             return aocConfig;
         }

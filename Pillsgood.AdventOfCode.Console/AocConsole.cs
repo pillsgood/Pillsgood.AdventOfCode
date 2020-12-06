@@ -32,7 +32,7 @@ namespace Pillsgood.AdventOfCode.Console
         }
 
         private readonly IConsoleWriter _console;
-        private readonly AocConfig _aocConfig;
+        private readonly IAocConfig _aocConfig;
         private readonly AocConsoleConfig _consoleConfig;
         private readonly Random _random;
 
@@ -41,7 +41,7 @@ namespace Pillsgood.AdventOfCode.Console
         private int currentYear = 0;
         private int Width => (int) (_consoleConfig.Width ?? 64);
 
-        public AocConsole(IConsoleWriter console, AocConfig aocConfig, AocConsoleConfig consoleConfig, Random random)
+        public AocConsole(IConsoleWriter console, IAocConfig aocConfig, AocConsoleConfig consoleConfig, Random random)
         {
             _console = console;
             _aocConfig = aocConfig;

@@ -1,7 +1,4 @@
-﻿using Autofac.Features.Metadata;
-using Pillsgood.AdventOfCode.Abstractions;
-
-namespace Pillsgood.AdventOfCode.Core
+﻿namespace Pillsgood.AdventOfCode.Core
 {
     // internal static class PuzzleMetadataExtensions
     // {

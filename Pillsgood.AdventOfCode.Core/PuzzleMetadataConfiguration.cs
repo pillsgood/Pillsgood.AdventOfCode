@@ -13,7 +13,7 @@ namespace Pillsgood.AdventOfCode.Core
 
         private readonly int? _assemblyYear;
 
-        public PuzzleMetadataConfiguration(Assembly assembly, AocConfig config)
+        public PuzzleMetadataConfiguration(Assembly assembly, IAocConfig config)
         {
             _assemblyYear = config.Year.HasValue && config.Year.Value > 2000
                 ? config.Year

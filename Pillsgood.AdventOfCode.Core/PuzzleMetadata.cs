@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Core

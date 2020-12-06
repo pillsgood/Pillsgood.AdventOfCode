@@ -5,7 +5,6 @@ using System.Net;
 using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Autofac.Features.Metadata;
 using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Core
@@ -15,6 +14,7 @@ namespace Pillsgood.AdventOfCode.Core
         public delegate PuzzleRunner Factory(ILifetimeScope puzzleScope);
 
         private readonly PartsHandle.Factory _handleFactory;
+        private readonly PuzzleDataManager _dataManager;
         private readonly IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> _metaPuzzles;
         private readonly IAocConsole _console;
         private readonly IServiceProvider _serviceProvider;
@@ -23,15 +23,17 @@ namespace Pillsgood.AdventOfCode.Core
         internal PuzzleRunner(ILifetimeScope scope,
             IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles,
             PartsHandle.Factory handleFactory,
+            PuzzleDataManager dataManager,
             IAocConsole console = null)
         {
             _metaPuzzles = metaPuzzles;
             _handleFactory = handleFactory;
+            _dataManager = dataManager;
             _console = console;
             _serviceProvider = new AutofacServiceProvider(scope);
         }
 
-        public IEnumerable<KeyValuePair<PuzzleData, IEnumerable<string>>> Run(int? year = null, int? day = null)
+        public IEnumerable<PuzzleData> Run(int? year = null, int? day = null)
         {
             var metaPuzzles = _metaPuzzles.Where(puzzle =>
             {
@@ -54,13 +56,13 @@ namespace Pillsgood.AdventOfCode.Core
 
             if (_console != null)
             {
-                results = results as KeyValuePair<PuzzleData, IEnumerable<string>>[] ?? results.ToArray();
+                results = results as PuzzleData[] ?? results.ToArray();
             }
 
             return results;
         }
 
-        private IEnumerable<KeyValuePair<PuzzleData, IEnumerable<string>>> Run(
+        private IEnumerable<PuzzleData> Run(
             IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles)
         {
             foreach (var metaPuzzle in metaPuzzles)
@@ -68,27 +70,32 @@ namespace Pillsgood.AdventOfCode.Core
                 _console?.WriteYear(metaPuzzle.Metadata.Year);
                 _console?.WriteDay(metaPuzzle.Metadata.Day);
                 var handles = _handleFactory.Invoke(metaPuzzle).Values;
-                var answers = RunParts(handles);
+                var results = RunParts(handles);
                 if (_console != null)
                 {
-                    answers = answers.ToArray();
+                    results = results.ToArray();
                 }
 
-                yield return
-                    new KeyValuePair<PuzzleData, IEnumerable<string>>(new PuzzleData(metaPuzzle.Metadata), answers);
+                var data = _dataManager.Get(metaPuzzle.Metadata);
+                data.Results = results;
+                yield return data;
+
+                _dataManager.Serialize(data);
             }
 
             _console?.PrintSeparator();
         }
 
-        private IEnumerable<string> RunParts(IEnumerable<PartsHandle.ScopeHandle> handles)
+        private IEnumerable<PuzzleResult> RunParts(IEnumerable<PartsHandle.ScopeHandle> handles)
         {
-            var part = 1;
             foreach (var handle in handles)
             {
-                using var scope = handle.Invoke(out var partHandle);
+                using var scope = handle.Invoke(out var partHandle, out var part);
                 if (EvaluateAnswer(partHandle, out var answer, ref part)) continue;
-                yield return answer;
+                yield return new PuzzleResult
+                {
+                    Answer = answer, Part = part
+                };
             }
         }
 
@@ -97,7 +104,7 @@ namespace Pillsgood.AdventOfCode.Core
             answer = null;
             try
             {
-                _console?.WritePart(part++);
+                _console?.WritePart(part);
                 answer = handle.Invoke();
                 if (answer == null)
                 {
@@ -129,7 +136,7 @@ namespace Pillsgood.AdventOfCode.Core
                         break;
                 }
 
-                if (e.InnerException != null) throw e.InnerException;
+                if (e.InnerException != null) throw;
                 throw;
             }
 

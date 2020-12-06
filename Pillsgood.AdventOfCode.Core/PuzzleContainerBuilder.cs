@@ -11,9 +11,9 @@ namespace Pillsgood.AdventOfCode.Core
         public void Configure(ContainerBuilder containerBuilder) => _builder.Invoke(containerBuilder);
 
         public PuzzleContainerBuilder(PuzzleMetadataConfiguration.Factory metadataConfigurationFactory,
-            AocConfig config)
+            IAocConfig config)
         {
-            foreach (var assembly in config.assemblies)
+            foreach (var assembly in config.Assemblies)
             {
                 var metadataConfiguration = metadataConfigurationFactory.Invoke(assembly);
 
