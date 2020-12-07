@@ -8,15 +8,15 @@ namespace Pillsgood.AdventOfCode.Client
     {
         public static AocConfigBuilder AddClient(this AocConfigBuilder aocConfig)
         {
-            aocConfig.ConfigureServices(collection => collection.TryAddSingleton<IAocClient, AocClient>());
+            aocConfig.AddClient(null);
             return aocConfig;
         }
 
         public static AocConfigBuilder AddClient(this AocConfigBuilder aocConfig, Action<AocClientConfig> configure)
         {
             var config = new AocClientConfig();
-            configure.Invoke(config);
-            return aocConfig.AddClient()
+            configure?.Invoke(config);
+            return aocConfig.ConfigureServices(collection => collection.TryAddSingleton<IAocClient, AocClient>())
                 .ConfigureServices(collection => collection
                     .TryAddSingleton(config));
         }
