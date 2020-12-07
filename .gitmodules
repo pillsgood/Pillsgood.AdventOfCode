@@ -1,0 +1,4 @@
+[submodule "Pillsgood.Extensions.Logging"]
+	path = Pillsgood.Extensions.Logging
+	url = https://www.github.com/pillsgood/pillsgood.extensions.logging
+	branch = master
