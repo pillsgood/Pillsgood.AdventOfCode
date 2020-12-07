@@ -13,21 +13,18 @@ namespace Pillsgood.AdventOfCode.Core
     {
         public delegate PuzzleRunner Factory(ILifetimeScope puzzleScope);
 
-        private readonly PartsHandle.Factory _handleFactory;
+        private readonly AocLifetimeManager _lifetimeManager;
         private readonly PuzzleDataManager _dataManager;
-        private readonly IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> _metaPuzzles;
         private readonly IAocConsole _console;
         private readonly IServiceProvider _serviceProvider;
         public IServiceProvider ServiceProvider => _serviceProvider;
 
         internal PuzzleRunner(ILifetimeScope scope,
-            IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles,
-            PartsHandle.Factory handleFactory,
+            AocLifetimeManager lifetimeManager,
             PuzzleDataManager dataManager,
             IAocConsole console = null)
         {
-            _metaPuzzles = metaPuzzles;
-            _handleFactory = handleFactory;
+            _lifetimeManager = lifetimeManager;
             _dataManager = dataManager;
             _console = console;
             _serviceProvider = new AutofacServiceProvider(scope);
@@ -35,24 +32,24 @@ namespace Pillsgood.AdventOfCode.Core
 
         public IEnumerable<PuzzleData> Run(int? year = null, int? day = null)
         {
-            var metaPuzzles = _metaPuzzles.Where(puzzle =>
+            var metadataSets = _dataManager.GetMetadataSets(metadata =>
             {
-                var metaData = puzzle.Metadata;
                 var valid = true;
                 if (year.HasValue)
                 {
-                    valid = valid && metaData.Year == year;
+                    valid = valid && metadata.Year == year;
                 }
 
                 if (day.HasValue)
                 {
-                    valid = valid && metaData.Day == day;
+                    valid = valid && metadata.Day == day;
                 }
 
                 return valid;
-            }).OrderBy(meta => meta.Metadata.year).ThenBy(meta => meta.Metadata.day);
+            }).OrderBy(metadata => metadata.Year).ThenBy(metadata => metadata.Day);
 
-            var results = Run(metaPuzzles);
+
+            var results = Run(metadataSets);
 
             if (_console != null)
             {
@@ -63,20 +60,21 @@ namespace Pillsgood.AdventOfCode.Core
         }
 
         private IEnumerable<PuzzleData> Run(
-            IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles)
+            IEnumerable<PuzzleMetadata> metadataSets)
         {
-            foreach (var metaPuzzle in metaPuzzles)
+            foreach (var metadata in metadataSets)
             {
-                _console?.WriteYear(metaPuzzle.Metadata.Year);
-                _console?.WriteDay(metaPuzzle.Metadata.Day);
-                var handles = _handleFactory.Invoke(metaPuzzle).Values;
-                var results = RunParts(handles);
+                _console?.WriteYear(metadata.Year);
+                _console?.WriteDay(metadata.Day);
+                using var dayScope = _lifetimeManager.StartPuzzleScope(metadata, out var factory);
+                var handles = factory.Invoke(metadata, dayScope);
+                var results = RunParts(handles.Values);
                 if (_console != null)
                 {
                     results = results.ToArray();
                 }
 
-                var data = _dataManager.Get(metaPuzzle.Metadata);
+                var data = _dataManager.Get(metadata);
                 data.Results = results;
                 yield return data;
 

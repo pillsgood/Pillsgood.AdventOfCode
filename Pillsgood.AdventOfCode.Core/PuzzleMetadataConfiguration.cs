@@ -21,16 +21,17 @@ namespace Pillsgood.AdventOfCode.Core
                   ?? GetAssemblyYear(assembly);
         }
 
-        public Action<MetadataConfiguration<PuzzleMetadata>> From(Type type)
+        public Action<MetadataConfiguration<PuzzleMetadata>> From(Type type, out PuzzleMetadata metadata)
         {
-            var metadata = type.GetCustomAttribute<PuzzleAttribute>()?.metadata ?? new PuzzleMetadata();
+            metadata = type.GetCustomAttribute<PuzzleAttribute>()?.metadata ?? new PuzzleMetadata();
             metadata.Type = type;
             metadata.year ??= _assemblyYear ?? GetYear(type);
             metadata.day ??= GetDay(type);
+            var puzzleMetadata = metadata;
             return configuration => configuration
-                .For(puzzleMetadata => puzzleMetadata.Type, type)
-                .For(puzzleMetadata => puzzleMetadata.Year, metadata.Year)
-                .For(puzzleMetadata => puzzleMetadata.Day, metadata.Day);
+                .For(meta => meta.Type, type)
+                .For(meta => meta.Year, puzzleMetadata.Year)
+                .For(meta => meta.Day, puzzleMetadata.Day);
         }
 
         private static int? GetDay(MemberInfo type)

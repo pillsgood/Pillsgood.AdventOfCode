@@ -9,7 +9,7 @@ namespace Pillsgood.AdventOfCode.Core
     {
         internal readonly IContainer container;
         private readonly ILifetimeScope _lifetimeScope;
-        private PuzzleRunner.Factory _runnerFactory;
+        private readonly PuzzleRunner.Factory _runnerFactory;
 
         private AocLifetimeManager(IContainer container, PuzzleContainerBuilder puzzleContainerBuilder)
         {
@@ -41,14 +41,16 @@ namespace Pillsgood.AdventOfCode.Core
             return container.Resolve<AocLifetimeManager>(new TypedParameter(typeof(IContainer), container));
         }
 
-        internal ILifetimeScope GetPuzzleScope(PuzzleMetadata metadata)
+        internal ILifetimeScope StartPuzzleScope(PuzzleMetadata metadata, out PartsHandle.Factory partHandleFactory)
         {
-            return _lifetimeScope.BeginLifetimeScope(builder =>
+            var scope = _lifetimeScope.BeginLifetimeScope(builder =>
             {
                 builder.RegisterModule(PuzzleModuleFactory.Create(metadata));
                 builder.Register(context => context.Resolve<PuzzleInputFactory>()
                     .Create(metadata)).As<IPuzzleInput>().SingleInstance();
             });
+            partHandleFactory = scope.Resolve<PartsHandle.Factory>();
+            return scope;
         }
 
         public void Dispose()

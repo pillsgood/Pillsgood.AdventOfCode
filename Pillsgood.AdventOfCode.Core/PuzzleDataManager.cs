@@ -11,13 +11,15 @@ namespace Pillsgood.AdventOfCode.Core
     {
         private readonly IAocConfig _config;
         private readonly IEnumerable<PuzzleData> _puzzleDataSets;
+        private readonly IEnumerable<PuzzleMetadata> _puzzleMetadataSets;
         private readonly List<PuzzleData> _uninitializedDataSets;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
         public PuzzleDataManager(IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles, IAocConfig config)
         {
             _config = config;
-            _puzzleDataSets = metaPuzzles.Select(meta => new PuzzleData(meta.Metadata)).ToArray();
+            _puzzleMetadataSets = metaPuzzles.Select(lazy => lazy.Metadata);
+            _puzzleDataSets = _puzzleMetadataSets.Select(metadata => new PuzzleData(metadata)).ToArray();
             _uninitializedDataSets = _puzzleDataSets.ToList();
             _jsonSerializerSettings = new JsonSerializerSettings
             {
@@ -27,6 +29,9 @@ namespace Pillsgood.AdventOfCode.Core
                 ObjectCreationHandling = ObjectCreationHandling.Reuse
             };
         }
+
+        public IEnumerable<PuzzleMetadata> GetMetadataSets(Func<PuzzleMetadata, bool> predicate) =>
+            _puzzleMetadataSets.Where(predicate);
 
         public PuzzleData Get(IPuzzleMetadata metadata)
         {

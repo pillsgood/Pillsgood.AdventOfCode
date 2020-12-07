@@ -21,7 +21,8 @@ namespace Pillsgood.AdventOfCode.Core
                     .Where(type => type.GetInterfaces().Contains(typeof(IPuzzle))))
                 {
                     _builder += builder => builder.RegisterType(puzzleType).As<IPuzzle>()
-                        .WithMetadata(metadataConfiguration.From(puzzleType));
+                        .WithMetadata(metadataConfiguration.From(puzzleType, out var metadata))
+                        .Keyed<IPuzzle>(metadata).InstancePerLifetimeScope();
                 }
             }
         }
