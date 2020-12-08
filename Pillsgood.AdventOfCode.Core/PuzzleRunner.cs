@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Pillsgood.AdventOfCode.Abstractions;
@@ -64,8 +65,18 @@ namespace Pillsgood.AdventOfCode.Core
         {
             foreach (var metadata in metadataSets)
             {
+                var data = _dataManager.Get(metadata).Result;
                 _console?.WriteYear(metadata.Year);
-                _console?.WriteDay(metadata.Day);
+                
+                if (string.IsNullOrEmpty(data.Title))
+                {
+                    _console?.WriteDay(data.Day);
+                }
+                else
+                {
+                    _console?.WriteDay(data.Title);
+                }
+
                 using var dayScope = _lifetimeManager.StartPuzzleScope(metadata, out var factory);
                 var handles = factory.Invoke(metadata, dayScope);
                 var results = RunParts(handles.Values);
@@ -73,9 +84,7 @@ namespace Pillsgood.AdventOfCode.Core
                 {
                     results = results.ToArray();
                 }
-
-                var data = _dataManager.Get(metadata);
-                data.Results = results;
+                
                 yield return data;
 
                 _dataManager.Serialize(data);

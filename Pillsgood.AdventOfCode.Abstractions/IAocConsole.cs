@@ -10,6 +10,7 @@ namespace Pillsgood.AdventOfCode.Abstractions
         void WriteYear(int year);
         void WritePart(int part);
         void WriteDay(int day);
+        void WriteDay(string title);
         void WriteAnswer(string answer);
         void WriteAnswerNotImplemented();
         void WriteAnswerIsNull();

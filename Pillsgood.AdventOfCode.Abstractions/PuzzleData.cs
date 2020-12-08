@@ -8,7 +8,6 @@ namespace Pillsgood.AdventOfCode.Abstractions
     [JsonObject(MemberSerialization.OptIn)]
     public class PuzzleData : IPuzzleMetadata
     {
-        private Guid _guid = Guid.NewGuid();
         internal PuzzleData(IPuzzleMetadata metadata)
         {
             Day = metadata.Day;
@@ -17,6 +16,8 @@ namespace Pillsgood.AdventOfCode.Abstractions
 
         [JsonProperty] public int Day { get; }
         [JsonProperty] public int Year { get; }
+
+        [JsonProperty] public string Title { get; internal set; }
         [JsonProperty] public string Input { get; internal set; }
         [JsonProperty] public IEnumerable<PuzzleResult> Results { get; internal set; }
     }

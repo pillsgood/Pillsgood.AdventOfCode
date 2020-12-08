@@ -9,4 +9,8 @@
       <ProjectReference Include="..\Pillsgood.AdventOfCode.Console\Pillsgood.AdventOfCode.Console.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="AngleSharp" Version="0.14.0" />
+    </ItemGroup>
+
 </Project>

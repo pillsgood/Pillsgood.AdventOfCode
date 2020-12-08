@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Pillsgood.AdventOfCode.Abstractions;
 
@@ -16,9 +17,13 @@ namespace Pillsgood.AdventOfCode.Client
         {
             var config = new AocClientConfig();
             configure?.Invoke(config);
-            return aocConfig.ConfigureServices(collection => collection.TryAddSingleton<IAocClient, AocClient>())
-                .ConfigureServices(collection => collection
-                    .TryAddSingleton(config));
+            return aocConfig.ConfigureServices(collection =>
+            {
+                collection.TryAddSingleton<IAocClient, AocClient>();
+                collection.TryAddSingleton<IAocScraper, AocScraper>();
+                collection.TryAddSingleton(provider => (AocClient) provider.GetService<IAocClient>());
+                collection.TryAddSingleton(config);
+            });
         }
     }
 }

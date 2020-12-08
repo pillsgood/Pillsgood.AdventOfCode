@@ -92,6 +92,12 @@ namespace Pillsgood.AdventOfCode.Console
             WriteHeader($"Day {day}", AocResource.HeaderLong, Color.Lime, Color.Green);
         }
 
+        public void WriteDay(string title)
+        {
+            WriteHeader(title, AocResource.HeaderLong, Color.Lime, Color.Green);
+        }
+
+
         public void WriteAnswer(string answer)
         {
             _console.WriteLine();

@@ -17,7 +17,7 @@ namespace Pillsgood.AdventOfCode.Core
         {
             return new PuzzleInput(() =>
             {
-                var data = _dataManager.Get(metadata);
+                var data = _dataManager.Get(metadata).Result;
                 if (string.IsNullOrEmpty(data.Input))
                 {
                     data.Input = _client?.GetPuzzleInput(data).Result;
