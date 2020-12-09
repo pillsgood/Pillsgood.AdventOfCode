@@ -1,4 +1,5 @@
 ﻿using System;
+using Autofac.Features.Indexed;
 using Microsoft.Extensions.DependencyInjection;
 using Pillsgood.AdventOfCode.Abstractions;
 
@@ -8,9 +9,9 @@ namespace Pillsgood.AdventOfCode.Core
     {
         private readonly Lazy<string> _value;
 
-        public PuzzleInput(Func<string> value)
+        public PuzzleInput(PuzzleMetadata puzzleMetadata, IIndex<PuzzleMetadata, Lazy<PuzzleData>> puzzleDataIndex)
         {
-            _value = new Lazy<string>(value);
+            _value = new Lazy<string>(() => puzzleDataIndex[puzzleMetadata].Value.Input);
         }
 
         public string Value => _value.Value;

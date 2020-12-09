@@ -1,5 +1,6 @@
 ﻿using System;
 using Autofac;
+using Autofac.Core.Lifetime;
 using Pillsgood.AdventOfCode.Abstractions;
 
 
@@ -9,54 +10,54 @@ namespace Pillsgood.AdventOfCode.Core
     {
         internal readonly IContainer container;
         private readonly ILifetimeScope _lifetimeScope;
-        private readonly PuzzleRunner.Factory _runnerFactory;
 
-        private AocLifetimeManager(IContainer container, PuzzleContainerBuilder puzzleContainerBuilder)
+        private AocLifetimeManager(IContainer container, PuzzleContainerBuilder puzzleContainerBuilder,
+            Action<ContainerBuilder> buildLifetimeServices)
         {
             this.container = container;
             _lifetimeScope = container.BeginLifetimeScope(builder =>
             {
                 puzzleContainerBuilder.Configure(builder);
+                buildLifetimeServices.Invoke(builder);
                 builder.RegisterType<PuzzleRunner>()
+                    .WithParameter((info, context) => info.ParameterType == typeof(ILifetimeScope),
+                        (info, context) => _lifetimeScope)
                     .FindConstructorsWith(new AllConstructorFinder());
                 builder.RegisterType<PuzzleDataManager>().SingleInstance();
-                builder.RegisterType<PuzzleInputFactory>().SingleInstance();
+                builder.RegisterType<PuzzleHandle>()
+                    .WithParameter((info, context) => info.ParameterType == typeof(ILifetimeScope),
+                        (info, context) => _lifetimeScope)
+                    .InstancePerDependency();
             });
-            _runnerFactory = _lifetimeScope.Resolve<PuzzleRunner.Factory>();
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
         }
 
-        public IPuzzleRunner ResolveRunner() => _runnerFactory.Invoke(_lifetimeScope);
+        private void CurrentDomainOnProcessExit(object sender, EventArgs e)
+        {
+            Dispose();
+        }
 
-        internal static AocLifetimeManager Build(Action<ContainerBuilder> buildServices)
+        internal static IPuzzleRunner Build(Action<ContainerBuilder> buildRootServices,
+            Action<ContainerBuilder> buildLifetimeServices)
         {
             var containerBuilder = new ContainerBuilder();
-            buildServices.Invoke(containerBuilder);
+            buildRootServices.Invoke(containerBuilder);
             containerBuilder.RegisterType<Random>().SingleInstance();
             containerBuilder.RegisterType<AocLifetimeManager>().SingleInstance()
                 .FindConstructorsWith(new AllConstructorFinder());
             containerBuilder.RegisterType<PuzzleContainerBuilder>();
             containerBuilder.RegisterType<PuzzleMetadataConfiguration>();
-            containerBuilder.RegisterType<PartsHandle>();
             var container = containerBuilder.Build();
-            return container.Resolve<AocLifetimeManager>(new TypedParameter(typeof(IContainer), container));
-        }
-
-        internal ILifetimeScope StartPuzzleScope(PuzzleMetadata metadata, out PartsHandle.Factory partHandleFactory)
-        {
-            var scope = _lifetimeScope.BeginLifetimeScope(builder =>
-            {
-                builder.RegisterModule(PuzzleModuleFactory.Create(metadata));
-                builder.Register(context => context.Resolve<PuzzleInputFactory>()
-                    .Create(metadata)).As<IPuzzleInput>().SingleInstance();
-            });
-            partHandleFactory = scope.Resolve<PartsHandle.Factory>();
-            return scope;
+            var lifetimeManager = container.Resolve<AocLifetimeManager>(
+                new TypedParameter(typeof(IContainer), container),
+                new TypedParameter(typeof(Action<ContainerBuilder>), buildLifetimeServices));
+            return lifetimeManager._lifetimeScope.Resolve<IPuzzleRunner>();
         }
 
         public void Dispose()
         {
-            container?.Dispose();
             _lifetimeScope?.Dispose();
+            container?.Dispose();
         }
     }
 }

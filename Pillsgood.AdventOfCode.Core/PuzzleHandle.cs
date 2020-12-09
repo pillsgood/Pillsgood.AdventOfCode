@@ -8,26 +8,33 @@ using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Core
 {
-    internal class PartsHandle
+    internal class PuzzleHandle : IDisposable
     {
-        public delegate PartsHandle Factory(PuzzleMetadata metadata, ILifetimeScope scope);
+        public delegate PuzzleHandle Factory(PuzzleMetadata metadata);
 
-        public delegate IDisposable ScopeHandle(out Func<string> partHandle, out int part);
+        private readonly ILifetimeScope _scope;
 
-        public IEnumerable<ScopeHandle> Values { get; }
+        public delegate IDisposable PartScopeHandle(out Func<string> partHandle);
 
-        public PartsHandle(PuzzleMetadata metadata, ILifetimeScope scope, IIndex<PuzzleMetadata, IPuzzle> puzzleIndex)
+        public IEnumerable<KeyValuePair<int, PartScopeHandle>> Values { get; }
+
+        public PuzzleHandle(PuzzleMetadata metadata, ILifetimeScope scope, IIndex<PuzzleMetadata, IPuzzle> puzzleIndex)
         {
+            _scope = scope.BeginLifetimeScope(builder =>
+            {
+                builder.RegisterModule(PuzzleModuleFactory.Create(metadata));
+                builder.RegisterType<PuzzleInput>().As<IPuzzleInput>()
+                    .WithParameter(new TypedParameter(typeof(PuzzleMetadata), metadata)).SingleInstance();
+            });
+
             var puzzleInstance = puzzleIndex[metadata];
             var parts = GetPartMethodInfos(puzzleInstance);
-            Values = parts.Select<KeyValuePair<int, MethodInfo>, ScopeHandle>(pair =>
-                (out Func<string> handle, out int part) =>
-                {
-                    var partScope = scope.BeginLifetimeScope();
-                    part = pair.Key;
-                    handle = InjectParameters(partScope, puzzleInstance, pair.Value);
-                    return partScope;
-                });
+            Values = parts.Select(pair => new KeyValuePair<int, PartScopeHandle>(pair.Key, (out Func<string> handle) =>
+            {
+                var partScope = _scope.BeginLifetimeScope();
+                handle = InjectParameters(partScope, puzzleInstance, pair.Value);
+                return partScope;
+            }));
         }
 
         private static Func<string> InjectParameters(IComponentContext scope, IPuzzle puzzle, MethodInfo methodInfo)
@@ -60,6 +67,11 @@ namespace Pillsgood.AdventOfCode.Core
             }
 
             return parts;
+        }
+
+        public void Dispose()
+        {
+            _scope?.Dispose();
         }
     }
 }

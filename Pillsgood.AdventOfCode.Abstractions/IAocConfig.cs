@@ -12,5 +12,6 @@ namespace Pillsgood.AdventOfCode.Abstractions
         LogLevel LoggingLevel { get; }
         Assembly[] Assemblies { get; }
         string SerializationDirectory { get; }
+        Action<IServiceCollection> PostConfiguration { get; }
     }
 }

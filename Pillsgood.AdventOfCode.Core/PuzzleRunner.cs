@@ -12,142 +12,70 @@ namespace Pillsgood.AdventOfCode.Core
 {
     internal class PuzzleRunner : IPuzzleRunner
     {
-        public delegate PuzzleRunner Factory(ILifetimeScope puzzleScope);
-
-        private readonly AocLifetimeManager _lifetimeManager;
-        private readonly PuzzleDataManager _dataManager;
-        private readonly IAocConsole _console;
+        private readonly PuzzleHandle.Factory _puzzleHandleFactory;
+        private readonly IEnumerable<Lazy<PuzzleData, PuzzleMetadata>> _puzzleDataSets;
         private readonly IServiceProvider _serviceProvider;
-        public IServiceProvider ServiceProvider => _serviceProvider;
 
         internal PuzzleRunner(ILifetimeScope scope,
-            AocLifetimeManager lifetimeManager,
-            PuzzleDataManager dataManager,
-            IAocConsole console = null)
+            PuzzleHandle.Factory puzzleHandleFactory, IEnumerable<Lazy<PuzzleData, PuzzleMetadata>> puzzleDataSets)
         {
-            _lifetimeManager = lifetimeManager;
-            _dataManager = dataManager;
-            _console = console;
+            _puzzleHandleFactory = puzzleHandleFactory;
+            _puzzleDataSets = puzzleDataSets;
             _serviceProvider = new AutofacServiceProvider(scope);
         }
 
-        public IEnumerable<PuzzleData> Run(int? year = null, int? day = null)
+        public IEnumerable<IPuzzleData> Run(int? year = null, int? day = null)
         {
-            var metadataSets = _dataManager.GetMetadataSets(metadata =>
-            {
-                var valid = true;
-                if (year.HasValue)
-                {
-                    valid = valid && metadata.Year == year;
-                }
-
-                if (day.HasValue)
-                {
-                    valid = valid && metadata.Day == day;
-                }
-
-                return valid;
-            }).OrderBy(metadata => metadata.Year).ThenBy(metadata => metadata.Day);
-
-
-            var results = Run(metadataSets);
-
-            if (_console != null)
-            {
-                results = results as PuzzleData[] ?? results.ToArray();
-            }
-
-            return results;
+            var metadataSets = _puzzleDataSets
+                .Where(dataSet => (!year.HasValue || year.Value == dataSet.Metadata.Year) &&
+                                  (!day.HasValue || day.Value == dataSet.Metadata.Day))
+                .OrderBy(dataSet => dataSet.Metadata.Year)
+                .ThenBy(dataSet => dataSet.Metadata.Day);
+            return Run(metadataSets);
         }
 
-        private IEnumerable<PuzzleData> Run(
-            IEnumerable<PuzzleMetadata> metadataSets)
+        private IEnumerable<PuzzleData> Run(IEnumerable<Lazy<PuzzleData, PuzzleMetadata>> dataSets)
         {
-            foreach (var metadata in metadataSets)
+            foreach (var dataSet in dataSets)
             {
-                var data = _dataManager.Get(metadata).Result;
-                _console?.WriteYear(metadata.Year);
-                
-                if (string.IsNullOrEmpty(data.Title))
-                {
-                    _console?.WriteDay(data.Day);
-                }
-                else
-                {
-                    _console?.WriteDay(data.Title);
-                }
-
-                using var dayScope = _lifetimeManager.StartPuzzleScope(metadata, out var factory);
-                var handles = factory.Invoke(metadata, dayScope);
-                var results = RunParts(handles.Values);
-                if (_console != null)
-                {
-                    results = results.ToArray();
-                }
-                
+                var data = dataSet.Value;
+                data.results = RunParts(dataSet.Metadata, data.Results.Cast<PuzzleResult>().ToArray())
+                    .OrderBy(result => result.Part);
                 yield return data;
-
-                _dataManager.Serialize(data);
             }
-
-            _console?.PrintSeparator();
         }
 
-        private IEnumerable<PuzzleResult> RunParts(IEnumerable<PartsHandle.ScopeHandle> handles)
+        private IEnumerable<PuzzleResult> RunParts(PuzzleMetadata metadata, PuzzleResult[] results)
         {
-            foreach (var handle in handles)
+            using var handles = _puzzleHandleFactory.Invoke(metadata);
+            foreach (var (key, scopeHandle) in handles.Values)
             {
-                using var scope = handle.Invoke(out var partHandle, out var part);
-                if (EvaluateAnswer(partHandle, out var answer, ref part)) continue;
-                yield return new PuzzleResult
+                using var scope = scopeHandle.Invoke(out var handle);
+                if (EvaluateAnswer(handle, out var answer))
                 {
-                    Answer = answer, Part = part
-                };
+                    var result = results[key - 1];
+                    result.Part = key;
+                    result.Answer = answer;
+                    result.unused = false;
+                    yield return result;
+                }
+
+                scope.Dispose();
             }
+
+            handles.Dispose();
         }
 
-        private bool EvaluateAnswer(Func<string> handle, out string answer, ref int part)
+        private bool EvaluateAnswer(Func<string> handle, out string answer)
         {
             answer = null;
-            try
-            {
-                _console?.WritePart(part);
-                answer = handle.Invoke();
-                if (answer == null)
-                {
-                    _console?.WriteAnswerIsNull();
-                    return true;
-                }
+            answer = handle.Invoke();
+            return answer != null;
+        }
 
-                _console?.WriteAnswer(answer);
-            }
-            catch (TargetInvocationException e)
-            {
-                switch (e.InnerException)
-                {
-                    case NotImplementedException _:
-                        _console?.WriteAnswerNotImplemented();
-                        return true;
-                    case WebException webException:
-                        if (_console != null)
-                        {
-                            _console.WriteNoSessionId();
-                            _console.WriteException(webException);
-                        }
-                        else
-                        {
-                            throw e.InnerException;
-                        }
-
-                        Environment.Exit(1);
-                        break;
-                }
-
-                if (e.InnerException != null) throw;
-                throw;
-            }
-
-            return false;
+        public object GetService(Type serviceType)
+        {
+            return _serviceProvider.GetService(serviceType);
         }
     }
 }

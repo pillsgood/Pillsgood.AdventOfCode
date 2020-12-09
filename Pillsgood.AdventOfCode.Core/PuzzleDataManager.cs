@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -11,19 +9,16 @@ namespace Pillsgood.AdventOfCode.Core
     internal class PuzzleDataManager
     {
         private readonly IAocScraper _scraper;
+        private readonly IAocClient _client;
         private readonly IAocConfig _config;
-        private readonly IEnumerable<PuzzleData> _puzzleDataSets;
-        private readonly IEnumerable<PuzzleMetadata> _puzzleMetadataSets;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
-        public PuzzleDataManager(IEnumerable<Lazy<IPuzzle, PuzzleMetadata>> metaPuzzles,
-            IAocScraper scraper,
-            IAocConfig config)
+        public PuzzleDataManager(IAocConfig config,
+            IAocScraper scraper = null, IAocClient client = null)
         {
             _scraper = scraper;
+            _client = client;
             _config = config;
-            _puzzleMetadataSets = metaPuzzles.Select(lazy => lazy.Metadata);
-            _puzzleDataSets = _puzzleMetadataSets.Select(metadata => Deserialize(new PuzzleData(metadata)));
             _jsonSerializerSettings = new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore,
@@ -33,28 +28,14 @@ namespace Pillsgood.AdventOfCode.Core
             };
         }
 
-        public IEnumerable<PuzzleMetadata> GetMetadataSets(Func<PuzzleMetadata, bool> predicate) =>
-            _puzzleMetadataSets.Where(predicate);
-
-        public Task<PuzzleData> Get(IPuzzleMetadata metadata)
-        {
-            if (metadata is PuzzleData data)
-            {
-                return Populate(data);
-            }
-
-            data = _puzzleDataSets.First(puzzleData => ((IPuzzleMetadata) puzzleData).Equals(metadata));
-            return Populate(data);
-        }
 
         private string GetDataPath(IPuzzleMetadata metadata) =>
             string.Format(_config.SerializationDirectory, metadata.Year, metadata.Day);
 
-        public void Serialize(IPuzzleMetadata metadata)
+        internal void Serialize(PuzzleData data)
         {
-            var data = Get(metadata).Result;
             var json = JsonConvert.SerializeObject(data, _jsonSerializerSettings);
-            var path = GetDataPath(metadata);
+            var path = GetDataPath(data);
             var parent = Directory.GetParent(path);
             if (!parent.Exists)
             {
@@ -65,45 +46,50 @@ namespace Pillsgood.AdventOfCode.Core
             stream.Write(json);
         }
 
-        public PuzzleData Deserialize(PuzzleData data)
+        public void Deserialize(PuzzleData data)
         {
             if (!File.Exists(GetDataPath(data)))
             {
-                return data;
+                return;
             }
 
             var path = GetDataPath(data);
             using var stream = File.OpenText(path);
             var json = stream.ReadToEnd();
-            JsonConvert.PopulateObject(json, data);
-            return data;
+            JsonConvert.PopulateObject(json, data, _jsonSerializerSettings);
         }
 
-        private async Task<PuzzleData> Populate(PuzzleData data)
+        internal async Task Populate(PuzzleData data)
         {
-            if (string.IsNullOrEmpty(data.Title))
+            if (string.IsNullOrEmpty(data.title))
             {
-                data.Title = await _scraper.GetDayTitle(data);
+                data.title = await _scraper.GetDayTitle(data);
+            }
+
+            if (string.IsNullOrEmpty(data.input))
+            {
+                data.input = await _client.GetPuzzleInput(data);
             }
 
             await PopulateResult(data);
-            return data;
         }
 
         private async Task PopulateResult(PuzzleData data)
         {
-            if (data.Results.Any(result => string.IsNullOrEmpty(result.CorrectAnswer)))
+            if (data.results?.Any(result => string.IsNullOrEmpty(result.CorrectAnswer)) == true)
             {
                 var answers = (await _scraper.GetAnswer(data)).ToArray();
-                if (answers.Length == 0)
-                {
-                    return;
-                }
 
-                var idx = 0;
-                foreach (var puzzleResult in data.Results)
+                if (answers.Length != 0)
                 {
-                    puzzleResult.CorrectAnswer = answers[idx++];
+                    var idx = 0;
+                    foreach (var puzzleResult in data.results)
+                    {
+                        if (idx < answers.Length)
+                        {
+                            puzzleResult.CorrectAnswer = answers[idx++];
+                        }
+                    }
                 }
             }
         }

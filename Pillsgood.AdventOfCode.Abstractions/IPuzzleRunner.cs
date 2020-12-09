@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 namespace Pillsgood.AdventOfCode.Abstractions
 {
-    public interface IPuzzleRunner
+    public interface IPuzzleRunner : IServiceProvider
     {
-        IEnumerable<PuzzleData> Run(int? year = null, int? day = null);
-        IServiceProvider ServiceProvider { get; }
+        IEnumerable<IPuzzleData> Run(int? year = null, int? day = null);
     }
 }
