@@ -32,6 +32,12 @@ namespace Pillsgood.AdventOfCode
             builder.config.Services += configure;
             return builder;
         }
+        
+        public static AocConfigBuilder PostConfigure(this AocConfigBuilder builder, Action<IServiceCollection> configure)
+        {
+            builder.config.PostConfiguration += configure;
+            return builder;
+        }
 
         public static AocConfigBuilder SetYear(this AocConfigBuilder builder, int year)
         {
@@ -46,7 +52,7 @@ namespace Pillsgood.AdventOfCode
         /// <param name="builder"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static AocConfigBuilder SetSerializationPath(this AocConfigBuilder builder, string path)
+        public static AocConfigBuilder SetSerializationPath(this AocConfigBuilder builder, string path = AocConfig.DefaultSerializationPath)
         {
             path = !Path.HasExtension(path) ? path + ".json" : Path.ChangeExtension(path, ".json");
             builder.config.SerializationDirectory = path;
