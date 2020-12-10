@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -14,11 +15,14 @@ namespace Pillsgood.AdventOfCode
     public class AdventOfCode : IPuzzleRunner
     {
         private readonly PuzzleRunner _puzzleRunnerImplementation;
+        private readonly PuzzleExceptionHandler _exceptionHandler;
         private readonly IAocConsole _console;
 
-        private AdventOfCode(PuzzleRunner runner, IAocConsole console = null)
+
+        private AdventOfCode(PuzzleRunner runner, PuzzleExceptionHandler exceptionHandler, IAocConsole console = null)
         {
             _puzzleRunnerImplementation = runner;
+            _exceptionHandler = exceptionHandler;
             _console = console;
             _console?.StartUpMessage();
         }
@@ -46,7 +50,7 @@ namespace Pillsgood.AdventOfCode
                     _console.WriteDay(puzzleData.Title);
                 }
 
-                IterateResults(puzzleData);
+                puzzleData.results = IterateResults(puzzleData);
                 puzzleResults.Add(puzzleData);
             }
 
@@ -55,48 +59,23 @@ namespace Pillsgood.AdventOfCode
             return puzzleResults;
         }
 
-        private void IterateResults(PuzzleData puzzleData)
+        private IEnumerable<PuzzleResult> IterateResults(PuzzleData puzzleData)
         {
-            puzzleData.results = puzzleData.results.ToArray();
-            foreach (var result in puzzleData.results)
+            var results = new List<PuzzleResult>();
+            foreach (var result in puzzleData.Results)
             {
-                _console.WritePart(result.Part);
+                _console?.WritePart(result.Part);
                 if (result.Answer == null)
                 {
-                    _console.WriteAnswerIsNull();
+                    _exceptionHandler.For(puzzleData, result.Part);
                     continue;
                 }
 
-                try
-                {
-                    _console.WriteAnswer(result.Answer);
-                }
-                catch (TargetInvocationException e)
-                {
-                    switch (e.InnerException)
-                    {
-                        case NotImplementedException _:
-                            _console?.WriteAnswerNotImplemented();
-                            continue;
-                        case WebException webException:
-                            if (_console != null)
-                            {
-                                _console.WriteNoSessionId();
-                                _console.WriteException(webException);
-                            }
-                            else
-                            {
-                                throw e.InnerException;
-                            }
-
-                            Environment.Exit(1);
-                            break;
-                    }
-
-                    if (e.InnerException != null) throw;
-                    throw;
-                }
+                _console?.WriteAnswer(result.Answer);
+                results.Add((PuzzleResult) result);
             }
+
+            return results;
         }
 
         public object GetService(Type serviceType)
@@ -116,10 +95,14 @@ namespace Pillsgood.AdventOfCode
             {
                 builder.RegisterInstance(configBuilder.config).As<IAocConfig>().SingleInstance();
                 builder.Populate(services);
-                
-            }, builder => builder.RegisterType<AdventOfCode>().As<IPuzzleRunner>()
-                .SingleInstance()
-                .FindConstructorsWith(new AllConstructorFinder()));
+            }, builder =>
+            {
+                builder.RegisterType<AdventOfCode>().As<IPuzzleRunner>()
+                    .SingleInstance()
+                    .FindConstructorsWith(new AllConstructorFinder());
+                builder.RegisterType<PuzzleExceptionHandler>().AsSelf().SingleInstance()
+                    .FindConstructorsWith(new AllConstructorFinder());
+            });
         }
     }
 }

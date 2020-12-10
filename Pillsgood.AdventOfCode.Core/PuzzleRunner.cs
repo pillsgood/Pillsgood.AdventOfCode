@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Pillsgood.AdventOfCode.Abstractions;
@@ -12,12 +9,15 @@ namespace Pillsgood.AdventOfCode.Core
 {
     internal class PuzzleRunner : IPuzzleRunner
     {
+        public event Action<(IPuzzleMetadata, int), Exception> PuzzleExceptionThrown;
+
         private readonly PuzzleHandle.Factory _puzzleHandleFactory;
         private readonly IEnumerable<Lazy<PuzzleData, PuzzleMetadata>> _puzzleDataSets;
         private readonly IServiceProvider _serviceProvider;
 
         internal PuzzleRunner(ILifetimeScope scope,
-            PuzzleHandle.Factory puzzleHandleFactory, IEnumerable<Lazy<PuzzleData, PuzzleMetadata>> puzzleDataSets)
+            PuzzleHandle.Factory puzzleHandleFactory,
+            IEnumerable<Lazy<PuzzleData, PuzzleMetadata>> puzzleDataSets)
         {
             _puzzleHandleFactory = puzzleHandleFactory;
             _puzzleDataSets = puzzleDataSets;
@@ -45,31 +45,36 @@ namespace Pillsgood.AdventOfCode.Core
             }
         }
 
-        private IEnumerable<PuzzleResult> RunParts(PuzzleMetadata metadata, PuzzleResult[] results)
+        private IEnumerable<PuzzleResult> RunParts(PuzzleMetadata metadata, IReadOnlyList<PuzzleResult> results)
         {
             using var handles = _puzzleHandleFactory.Invoke(metadata);
-            foreach (var (key, scopeHandle) in handles.Values)
+            foreach (var (key, scopeHandle) in handles.Values.OrderBy(pair => pair.Key))
             {
                 using var scope = scopeHandle.Invoke(out var handle);
-                if (EvaluateAnswer(handle, out var answer))
+                var result = results.Count <= key - 1 ? new PuzzleResult() : results[key - 1];
+                result.Part = key;
+                result.unused = false;
+                try
                 {
-                    var result = results[key - 1];
-                    result.Part = key;
-                    result.Answer = answer;
-                    result.unused = false;
-                    yield return result;
+                    result.Answer = EvaluateAnswer(handle, out var answer) ? answer : null;
+                }
+                catch (Exception e)
+                {
+                    PuzzleExceptionThrown?.Invoke((metadata, key), e);
                 }
 
-                scope.Dispose();
+                yield return result;
             }
-
-            handles.Dispose();
         }
 
         private bool EvaluateAnswer(Func<string> handle, out string answer)
         {
-            answer = null;
             answer = handle.Invoke();
+            if (string.IsNullOrEmpty(answer))
+            {
+                throw new PuzzleNullOrEmptyException();
+            }
+
             return answer != null;
         }
 

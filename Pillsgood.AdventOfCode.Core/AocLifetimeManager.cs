@@ -1,6 +1,5 @@
 ﻿using System;
 using Autofac;
-using Autofac.Core.Lifetime;
 using Pillsgood.AdventOfCode.Abstractions;
 
 
@@ -22,7 +21,8 @@ namespace Pillsgood.AdventOfCode.Core
                 builder.RegisterType<PuzzleRunner>()
                     .WithParameter((info, context) => info.ParameterType == typeof(ILifetimeScope),
                         (info, context) => _lifetimeScope)
-                    .FindConstructorsWith(new AllConstructorFinder());
+                    .FindConstructorsWith(new AllConstructorFinder())
+                    .SingleInstance();
                 builder.RegisterType<PuzzleDataManager>().SingleInstance();
                 builder.RegisterType<PuzzleHandle>()
                     .WithParameter((info, context) => info.ParameterType == typeof(ILifetimeScope),

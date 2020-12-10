@@ -55,13 +55,13 @@ namespace Pillsgood.AdventOfCode.Core
             get
             {
                 _populateTask.Wait();
-                return results;
+                return results.Where(result => !result.unused);
             }
         }
 
         public void Dispose()
         {
-            results = results.Where(result => !result.unused).ToArray();
+            results = results.Where(result => !result.unused);
             _dataManager.Serialize(this);
         }
     }
