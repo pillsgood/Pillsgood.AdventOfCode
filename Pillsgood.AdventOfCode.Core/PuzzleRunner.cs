@@ -39,35 +39,43 @@ namespace Pillsgood.AdventOfCode.Core
             foreach (var dataSet in dataSets)
             {
                 var data = dataSet.Value;
-                data.results = RunParts(dataSet.Metadata, data.Results.Cast<PuzzleResult>().ToArray())
-                    .OrderBy(result => result.Part);
+                RunParts(dataSet.Metadata, data);
                 yield return data;
             }
         }
 
-        private IEnumerable<PuzzleResult> RunParts(PuzzleMetadata metadata, IReadOnlyList<PuzzleResult> results)
+        private void RunParts(PuzzleMetadata metadata, PuzzleData puzzleData)
         {
             using var handles = _puzzleHandleFactory.Invoke(metadata);
             foreach (var (key, scopeHandle) in handles.Values.OrderBy(pair => pair.Key))
             {
                 using var scope = scopeHandle.Invoke(out var handle);
-                var result = results.Count <= key - 1 ? new PuzzleResult() : results[key - 1];
-                result.Part = key;
-                result.unused = false;
+                var result = puzzleData.GetResult(key);
                 try
                 {
-                    result.Answer = EvaluateAnswer(handle, out var answer) ? answer : null;
+                    if (GetAnswer(handle, out var answer))
+                    {
+                        result.Answer = answer;
+                    }
+                    else
+                    {
+                        result.Answer = null;
+                    }
                 }
                 catch (Exception e)
                 {
                     PuzzleExceptionThrown?.Invoke((metadata, key), e);
                 }
-
-                yield return result;
             }
         }
 
-        private bool EvaluateAnswer(Func<string> handle, out string answer)
+        private bool EvaluateAnswer(PuzzleMetadata metadata, PuzzleResult result)
+        {
+            // var response = _scraper.GetAnswerSubmitResult(metadata, result.Part, result.Answer).Result;
+            return false;
+        }
+
+        private bool GetAnswer(Func<string> handle, out string answer)
         {
             answer = handle.Invoke();
             if (string.IsNullOrEmpty(answer))

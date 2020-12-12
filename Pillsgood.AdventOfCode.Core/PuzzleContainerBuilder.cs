@@ -28,6 +28,8 @@ namespace Pillsgood.AdventOfCode.Core
                                 (info, context) => metadata)
                             .Keyed<PuzzleData>(metadata).SingleInstance()
                             .FindConstructorsWith(new AllConstructorFinder());
+                        builder.RegisterType<PuzzleResult>().AsSelf().InstancePerDependency()
+                            .FindConstructorsWith(new AllConstructorFinder());
                         builder.RegisterType(puzzleType).As<IPuzzle>()
                             .Keyed<IPuzzle>(metadata)
                             .InstancePerLifetimeScope();

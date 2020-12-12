@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Pillsgood.AdventOfCode
@@ -30,6 +31,12 @@ namespace Pillsgood.AdventOfCode
         public static AocConfigBuilder ConfigureServices(this AocConfigBuilder builder, Action<IServiceCollection> configure)
         {
             builder.config.Services += configure;
+            return builder;
+        }
+        
+        public static AocConfigBuilder ConfigureServices(this AocConfigBuilder builder, Action<ContainerBuilder> configure)
+        {
+            builder.config.ContainerConfiguration += configure;
             return builder;
         }
         

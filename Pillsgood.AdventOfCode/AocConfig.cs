@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Pillsgood.AdventOfCode.Abstractions;
@@ -14,6 +15,7 @@ namespace Pillsgood.AdventOfCode
         {
         }
 
+        public Action<ContainerBuilder> ContainerConfiguration { get; internal set; } = delegate { };
         public Action<IServiceCollection> Services { get; internal set; } = delegate { };
         public Action<IServiceCollection> PostConfiguration { get; internal set; } = delegate { };
         public int? Year { get; internal set; } = null;

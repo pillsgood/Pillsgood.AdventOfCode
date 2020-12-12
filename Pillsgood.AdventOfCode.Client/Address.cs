@@ -4,5 +4,6 @@ namespace Pillsgood.AdventOfCode.Client
     {
         public const string Base = "https://adventofcode.com/";
         public const string Day = "{0}/day/{1}";
+        public const string PuzzleAnswer = Base + Day + "/answer";
     }
 }

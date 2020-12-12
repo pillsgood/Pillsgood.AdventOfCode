@@ -1,6 +1,5 @@
 ﻿using System;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Autofac;
 using Pillsgood.AdventOfCode.Abstractions;
 
 namespace Pillsgood.AdventOfCode.Client
@@ -17,12 +16,11 @@ namespace Pillsgood.AdventOfCode.Client
         {
             var config = new AocClientConfig();
             configure?.Invoke(config);
-            return aocConfig.ConfigureServices(collection =>
+            return aocConfig.ConfigureServices(builder =>
             {
-                collection.TryAddSingleton<IAocClient, AocClient>();
-                collection.TryAddSingleton<IAocScraper, AocScraper>();
-                collection.TryAddSingleton(provider => (AocClient) provider.GetService<IAocClient>());
-                collection.TryAddSingleton(config);
+                builder.RegisterType<AocClient>().AsSelf().As<IAocClient>().SingleInstance();
+                builder.RegisterType<AocWebSession>().As<IAocWebSession>().InstancePerLifetimeScope();
+                builder.RegisterInstance(config).AsSelf().SingleInstance();
             });
         }
     }

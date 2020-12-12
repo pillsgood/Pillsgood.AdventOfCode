@@ -30,6 +30,13 @@ namespace Pillsgood.AdventOfCode.Client
             return await response.Content.ReadAsStringAsync();
         }
 
+        internal async Task<Stream> PostForm(Url uri, FormUrlEncodedContent form)
+        {
+            var response = await _httpClient.PostAsync(uri, form);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStreamAsync();
+        }
+
         internal async Task<Stream> GetStream(Url uri)
         {
             return await _httpClient.GetStreamAsync(uri);

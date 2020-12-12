@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Pillsgood.AdventOfCode.Abstractions;
 using Pillsgood.Extensions.Logging;
 
@@ -18,7 +19,7 @@ namespace Pillsgood.AdventOfCode.Console
 
             aocConfig.ConfigureServices(collection =>
             {
-                collection.AddLogging(builder => builder.AddAnsiConsoleWriter());
+                collection.AddLogging(builder => builder.AddAnsiConsoleWriter().SetMinimumLevel(config.LoggingLevel));
                 collection.Configure<AnsiConsoleLoggerOptions>(options => options.TimeoutDuration = 500);
                 collection.TryAddSingleton<IAocConsole, AocConsole>();
                 collection.TryAddSingleton(config);
@@ -26,7 +27,7 @@ namespace Pillsgood.AdventOfCode.Console
 
             aocConfig.PostConfigure(collection =>
             {
-                if (collection.Any(descriptor => descriptor.ServiceType == typeof(IAocClient)))
+                if (collection.Any(descriptor => descriptor.ServiceType == typeof(IAocWebSession)))
                 {
                     collection.PostConfigure<AnsiConsoleLoggerOptions>(options => options.TimeoutDuration = 1000);
                 }

@@ -28,7 +28,7 @@ namespace Pillsgood.AdventOfCode.Core
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return day == other.day && year == other.year && Equals(Type, other.Type);
+            return day == other.day && year == other.year && Type == other.Type;
         }
 
         public override bool Equals(object obj)

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -95,6 +92,7 @@ namespace Pillsgood.AdventOfCode
             {
                 builder.RegisterInstance(configBuilder.config).As<IAocConfig>().SingleInstance();
                 builder.Populate(services);
+                configBuilder.config.ContainerConfiguration.Invoke(builder);
             }, builder =>
             {
                 builder.RegisterType<AdventOfCode>().As<IPuzzleRunner>()

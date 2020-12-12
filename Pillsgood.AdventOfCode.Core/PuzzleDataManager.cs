@@ -1,6 +1,9 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Autofac.Features.OwnedInstances;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Pillsgood.AdventOfCode.Abstractions;
 
@@ -8,12 +11,14 @@ namespace Pillsgood.AdventOfCode.Core
 {
     internal class PuzzleDataManager
     {
-        private readonly IAocScraper _scraper;
         private readonly IAocClient _client;
+        private readonly Func<IPuzzleMetadata, Owned<IAocWebSession>> _scraperFactory;
+        private readonly ILogger<PuzzleDataManager> _logger;
         private readonly IAocConfig _config;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
-        public PuzzleDataManager(IAocConfig config)
+
+        public PuzzleDataManager(IAocConfig config, ILogger<PuzzleDataManager> logger = null)
         {
             _config = config;
             _jsonSerializerSettings = new JsonSerializerSettings
@@ -23,12 +28,14 @@ namespace Pillsgood.AdventOfCode.Core
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 ObjectCreationHandling = ObjectCreationHandling.Reuse
             };
+            _logger = logger;
         }
 
-        public PuzzleDataManager(IAocConfig config, IAocScraper scraper, IAocClient client) : this(config)
+        public PuzzleDataManager(IAocConfig config, IAocClient client, Func<IPuzzleMetadata,
+            Owned<IAocWebSession>> scraperFactory, ILogger<PuzzleDataManager> logger = null) : this(config, logger)
         {
-            _scraper = scraper;
             _client = client;
+            _scraperFactory = scraperFactory;
         }
 
 
@@ -63,38 +70,40 @@ namespace Pillsgood.AdventOfCode.Core
             JsonConvert.PopulateObject(json, data, _jsonSerializerSettings);
         }
 
+        private readonly Dictionary<IPuzzleMetadata, Owned<IAocWebSession>> _ownedScrapers =
+            new Dictionary<IPuzzleMetadata, Owned<IAocWebSession>>();
+
+        private Lazy<IAocWebSession> GetScraperFactory(IPuzzleMetadata metadata) =>
+            new Lazy<IAocWebSession>(() =>
+            {
+                if (!_ownedScrapers.ContainsKey(metadata))
+                {
+                    _ownedScrapers.Add(metadata, _scraperFactory.Invoke(metadata));
+                }
+
+                return _ownedScrapers[metadata].Value;
+            });
+
         internal async Task Populate(PuzzleData data)
         {
+            var scraperFactory = GetScraperFactory(data);
             if (string.IsNullOrEmpty(data.title))
             {
-                data.title = await _scraper.GetDayTitle(data);
+                data.title = await scraperFactory.Value.GetDayTitle();
             }
 
             if (string.IsNullOrEmpty(data.input))
             {
-                data.input = await _client.GetPuzzleInput(data);
+                data.input = await scraperFactory.Value.GetPuzzleInput();
             }
-
-            await PopulateResult(data);
         }
 
-        private async Task PopulateResult(PuzzleData data)
+        internal async Task Populate(PuzzleResult result)
         {
-            if (data.results?.Any(result => string.IsNullOrEmpty(result.CorrectAnswer)) == true)
+            var scraperFactory = GetScraperFactory(result.Parent);
+            if (string.IsNullOrEmpty(result.CorrectAnswer))
             {
-                var answers = (await _scraper.GetAnswer(data)).ToArray();
-
-                if (answers.Length != 0)
-                {
-                    var idx = 0;
-                    foreach (var puzzleResult in data.results)
-                    {
-                        if (idx < answers.Length)
-                        {
-                            puzzleResult.CorrectAnswer = answers[idx++];
-                        }
-                    }
-                }
+                result.correctAnswer = await scraperFactory.Value.GetAnswer(result.Part);
             }
         }
     }
