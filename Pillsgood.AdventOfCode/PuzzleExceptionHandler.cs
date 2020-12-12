@@ -67,12 +67,11 @@ namespace Pillsgood.AdventOfCode
 
                                 Environment.Exit(1);
                                 break;
+                            default:
+                                throw e;
                         }
-
-                        break;
                     }
 
-                    _console?.WriteException(e);
                     break;
             }
 
