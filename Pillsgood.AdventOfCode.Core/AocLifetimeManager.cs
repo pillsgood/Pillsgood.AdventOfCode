@@ -7,13 +7,13 @@ namespace Pillsgood.AdventOfCode.Core
 {
     internal class AocLifetimeManager : IDisposable
     {
-        internal readonly IContainer container;
+        private readonly IContainer _container;
         private readonly ILifetimeScope _lifetimeScope;
 
         private AocLifetimeManager(IContainer container, PuzzleContainerBuilder puzzleContainerBuilder,
             Action<ContainerBuilder> buildLifetimeServices)
         {
-            this.container = container;
+            _container = container;
             _lifetimeScope = container.BeginLifetimeScope(builder =>
             {
                 puzzleContainerBuilder.Configure(builder);
@@ -40,14 +40,14 @@ namespace Pillsgood.AdventOfCode.Core
         internal static IPuzzleRunner Build(Action<ContainerBuilder> buildRootServices,
             Action<ContainerBuilder> buildLifetimeServices)
         {
-            var containerBuilder = new ContainerBuilder();
-            buildRootServices.Invoke(containerBuilder);
-            containerBuilder.RegisterType<Random>().SingleInstance();
-            containerBuilder.RegisterType<AocLifetimeManager>().SingleInstance()
+            var builder = new ContainerBuilder();
+            buildRootServices.Invoke(builder);
+            builder.RegisterType<Random>().SingleInstance();
+            builder.RegisterType<AocLifetimeManager>().SingleInstance()
                 .FindConstructorsWith(new AllConstructorFinder());
-            containerBuilder.RegisterType<PuzzleContainerBuilder>();
-            containerBuilder.RegisterType<PuzzleMetadataConfiguration>();
-            var container = containerBuilder.Build();
+            builder.RegisterType<PuzzleContainerBuilder>();
+            builder.RegisterType<PuzzleMetadataConfiguration>();
+            var container = builder.Build();
             var lifetimeManager = container.Resolve<AocLifetimeManager>(
                 new TypedParameter(typeof(IContainer), container),
                 new TypedParameter(typeof(Action<ContainerBuilder>), buildLifetimeServices));
@@ -57,7 +57,7 @@ namespace Pillsgood.AdventOfCode.Core
         public void Dispose()
         {
             _lifetimeScope?.Dispose();
-            container?.Dispose();
+            _container?.Dispose();
         }
     }
 }
