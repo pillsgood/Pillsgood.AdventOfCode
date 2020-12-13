@@ -13,11 +13,8 @@ namespace Pillsgood.AdventOfCode.Core
         private readonly IAocConfig _config;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 
-        public PuzzleDataManager(IAocConfig config,
-            IAocScraper scraper = null, IAocClient client = null)
+        public PuzzleDataManager(IAocConfig config)
         {
-            _scraper = scraper;
-            _client = client;
             _config = config;
             _jsonSerializerSettings = new JsonSerializerSettings
             {
@@ -28,9 +25,16 @@ namespace Pillsgood.AdventOfCode.Core
             };
         }
 
+        public PuzzleDataManager(IAocConfig config, IAocScraper scraper, IAocClient client) : this(config)
+        {
+            _scraper = scraper;
+            _client = client;
+        }
+
 
         private string GetDataPath(IPuzzleMetadata metadata) =>
-            string.Format(_config.SerializationDirectory, metadata.Year, metadata.Day);
+            string.Format(_config.SerializationDirectory, metadata.Year, metadata.Day,
+                _client == null ? string.Empty : $"{_client.SessionId.Substring(0, 10)}");
 
         internal void Serialize(PuzzleData data)
         {

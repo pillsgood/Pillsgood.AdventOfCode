@@ -13,11 +13,13 @@ namespace Pillsgood.AdventOfCode.Client
         private const string PuzzleInputAddress = Address.Base + Address.Day + "/input";
 
         private readonly HttpClient _httpClient;
+        public string SessionId { get; }
 
         public AocClient(AocClientConfig config)
         {
             _httpClient = new HttpClient { BaseAddress = new Uri(Address.Base) };
-            _httpClient.DefaultRequestHeaders.Add("Cookie", $"session={config.SessionId}");
+            SessionId = config.SessionId;
+            _httpClient.DefaultRequestHeaders.Add("Cookie", $"session={SessionId}");
         }
 
         public async Task<string> GetPuzzleInput(IPuzzleMetadata metadata)

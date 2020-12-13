@@ -8,7 +8,7 @@ namespace Pillsgood.AdventOfCode
 {
     internal class AocConfig : IAocConfig
     {
-        internal const string DefaultSerializationPath = "Data/Year_{0}/Day_{1}.json";
+        internal const string DefaultSerializationPath = "Data/{2}/Year_{0}/Day_{1}.json";
 
         internal AocConfig()
         {
