@@ -9,17 +9,8 @@ namespace Pillsgood.AdventOfCode
 {
     internal class PuzzleExceptionHandler
     {
-        private class PuzzlePartComparer : IEqualityComparer<(IPuzzleMetadata metadata, int part)>
-        {
-            public bool Equals((IPuzzleMetadata metadata, int part) x, (IPuzzleMetadata metadata, int part) y) =>
-                x.metadata?.Equals(y.metadata) == true && x.part == y.part;
-
-            public int GetHashCode((IPuzzleMetadata metadata, int part) obj) =>
-                HashCode.Combine(obj.metadata?.Year, obj.metadata?.Day, obj.part);
-        }
-
-        private readonly Dictionary<(IPuzzleMetadata, int), Action> _logExceptions =
-            new Dictionary<(IPuzzleMetadata, int), Action>(new PuzzlePartComparer());
+        private readonly Dictionary<IPuzzleResult, Action> _logExceptions =
+            new Dictionary<IPuzzleResult, Action>();
 
 
         private readonly IAocConsole _console;
@@ -31,15 +22,15 @@ namespace Pillsgood.AdventOfCode
                 _logExceptions.Add(key, () => OnPuzzleExceptionThrown(key, exception));
         }
 
-        public void For(IPuzzleMetadata metadata, int part)
+        public void For(IPuzzleResult result)
         {
-            if (_logExceptions.ContainsKey((metadata, part)))
+            if (_logExceptions.ContainsKey(result))
             {
-                _logExceptions[(metadata, part)]?.Invoke();
+                _logExceptions[result]?.Invoke();
             }
         }
 
-        private void OnPuzzleExceptionThrown(object key, Exception exception)
+        private void OnPuzzleExceptionThrown(IPuzzleResult key, Exception exception)
         {
             switch (exception)
             {
@@ -73,9 +64,11 @@ namespace Pillsgood.AdventOfCode
                     }
 
                     break;
+                default:
+                    throw exception;
             }
 
-            _logExceptions.Remove(((IPuzzleMetadata, int)) key);
+            _logExceptions.Remove(key);
         }
     }
 }

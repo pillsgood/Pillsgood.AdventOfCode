@@ -64,7 +64,7 @@ namespace Pillsgood.AdventOfCode
                 _console?.WritePart(result.Part);
                 if (result.Answer == null)
                 {
-                    _exceptionHandler.For(puzzleData, result.Part);
+                    _exceptionHandler.For(result);
                     continue;
                 }
 

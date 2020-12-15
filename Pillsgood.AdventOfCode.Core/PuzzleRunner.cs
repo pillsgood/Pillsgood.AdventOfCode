@@ -9,7 +9,7 @@ namespace Pillsgood.AdventOfCode.Core
 {
     internal class PuzzleRunner : IPuzzleRunner
     {
-        public event Action<(IPuzzleMetadata, int), Exception> PuzzleExceptionThrown;
+        public event Action<IPuzzleResult, Exception> PuzzleExceptionThrown;
 
         private readonly PuzzleHandle.Factory _puzzleHandleFactory;
         private readonly IEnumerable<Lazy<PuzzleData, PuzzleMetadata>> _puzzleDataSets;
@@ -64,7 +64,7 @@ namespace Pillsgood.AdventOfCode.Core
                 }
                 catch (Exception e)
                 {
-                    PuzzleExceptionThrown?.Invoke((metadata, key), e);
+                    PuzzleExceptionThrown?.Invoke(result, e);
                 }
             }
         }
