@@ -47,7 +47,7 @@ namespace Pillsgood.AdventOfCode.Core
 
         internal PuzzleData Parent { get; }
         public string Answer { get; internal set; }
-        public Status Status { get; internal set; }
+        public ResultStatus ResultStatus { get; internal set; }
 
         [JsonProperty] public int Part { get; internal set; }
         [JsonProperty("CorrectAnswer")] internal string correctAnswer;
@@ -62,15 +62,5 @@ namespace Pillsgood.AdventOfCode.Core
         }
 
         [JsonProperty] public string[] IncorrectAnswers { get; internal set; }
-    }
-
-    public enum Status
-    {
-        Unknown,
-        Correct,
-        Incorrect,
-        IncorrectTooLow,
-        IncorrectTooHigh,
-        UnknownSubmittedTooRecently,
     }
 }
