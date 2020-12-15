@@ -5,6 +5,6 @@ namespace Pillsgood.AdventOfCode.Console
     public class AocConsoleConfig
     {
         public int? Width { get; set; }
-        public LogLevel LoggingLevel { get; set; }
+        public LogLevel LoggingLevel { get; set; } = LogLevel.None;
     }
 }
