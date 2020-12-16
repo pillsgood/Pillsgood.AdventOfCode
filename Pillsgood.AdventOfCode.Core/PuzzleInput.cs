@@ -19,14 +19,14 @@ namespace Pillsgood.AdventOfCode.Core
 
     public class PuzzleInput<T> : IPuzzleInput<T>
     {
-        public delegate T FromRaw(string value);
+        public delegate T ParseInput(string input);
 
         private readonly Lazy<T> _value;
 
-        public PuzzleInput(IServiceProvider serviceProvider, FromRaw process)
+        public PuzzleInput(IServiceProvider serviceProvider, ParseInput parse)
         {
             RawInput = serviceProvider.GetRequiredService<IPuzzleInput>();
-            _value = new Lazy<T>(() => process(RawInput.Value));
+            _value = new Lazy<T>(() => parse(RawInput.Value));
         }
 
         public IPuzzleInput RawInput { get; }
