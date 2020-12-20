@@ -18,7 +18,7 @@ namespace Pillsgood.AdventOfCode.Core
 
         public IEnumerable<KeyValuePair<int, PartScopeHandle>> Values { get; }
 
-        public PuzzleHandle(PuzzleMetadata metadata, ILifetimeScope scope, IIndex<PuzzleMetadata, IPuzzle> puzzleIndex)
+        public PuzzleHandle(PuzzleMetadata metadata, ILifetimeScope scope)
         {
             _scope = scope.BeginLifetimeScope(builder =>
             {
@@ -27,7 +27,7 @@ namespace Pillsgood.AdventOfCode.Core
                     .WithParameter(new TypedParameter(typeof(PuzzleMetadata), metadata)).SingleInstance();
             });
 
-            var puzzleInstance = puzzleIndex[metadata];
+            var puzzleInstance = _scope.Resolve<IIndex<PuzzleMetadata, IPuzzle>>()[metadata];
             var parts = GetPartMethodInfos(puzzleInstance);
             Values = parts.Select(pair => new KeyValuePair<int, PartScopeHandle>(pair.Key, (out Func<string> handle) =>
             {
