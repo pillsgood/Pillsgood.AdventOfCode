@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="akavache" Version="9.0.1" PrivateAssets="compile" />
+        <PackageReference Include="FluentAssertions" Version="6.8.0" />
+        <PackageReference Include="SoftCircuits.HtmlMonkey" Version="2.1.2" PrivateAssets="compile" />
+    </ItemGroup>
+
+</Project>
