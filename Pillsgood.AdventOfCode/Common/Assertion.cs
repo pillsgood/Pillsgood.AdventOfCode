@@ -26,7 +26,7 @@ internal class Assertion : IAnswerAssertion
 
             answer.Should().BeEquivalentTo(knownAnswer);
         }
-        catch (KeyNotFoundException e)
+        catch (KeyNotFoundException)
         {
             await _answerService.SubmitAnswer(date, part, answer);
         }

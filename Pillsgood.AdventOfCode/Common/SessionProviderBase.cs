@@ -28,7 +28,7 @@ internal abstract class SessionProviderBase : ISessionProvider
         var document = HtmlDocument.FromHtml(page);
         if (!document.Find("head > title").Any(x => x.Text.Contains("Log In", StringComparison.OrdinalIgnoreCase)))
         {
-            BlobCache.Secure.Invalidate("session");
+            await BlobCache.Secure.Invalidate("session");
         }
     }
 
