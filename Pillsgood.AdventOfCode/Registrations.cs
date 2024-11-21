@@ -36,12 +36,15 @@ public static class Registrations
         resolver.RegisterLazySingleton<IAnswerAssertion>(static () => new Assertion());
 
         // Input Converters
-        resolver.Register<IPuzzleInputConverter<string>, StringInputConverter>();
-        resolver.Register<IPuzzleInputConverter<string[]>, LinesInputConverter>();
-        resolver.Register<IPuzzleInputConverter<List<string>>, LinesInputConverter<List<string>>>();
+        resolver.Register<IPuzzleInputConverter<string>>(() => new StringInputConverter());
+        resolver.Register<IPuzzleInputConverter<IEnumerable<string>>>(() => new LinesInputConverter());
+        resolver.Register(() => CollectionConverter<string>.Create(x => x.ToList()));
+        resolver.Register(() => CollectionConverter<string>.Create(x => x.ToArray()));
+        resolver.Register(() => CollectionConverter<string>.Create(IReadOnlyList<string> (x) => x.ToList()));
+        resolver.Register(() => CollectionConverter<string>.Create(IReadOnlyCollection<string> (x) => x.ToList()));
 
-        resolver.Register<IPuzzleInputConverter<IList<string>>>(static () =>
-            new AnonymousInputConverter<List<string>, IList<string>>(static x => x));
+        // resolver.Register<IPuzzleInputConverter<IList<string>>>(() =>
+        //     InputConverter.CreateInstance(static (IEnumerable<string> x) => x.ToList()));
 
         resolver.Register<NumberConverterFactory<int>>(static () =>
             (style, provider) => new NumberInputConverter<int>(style, provider));
@@ -55,7 +58,7 @@ public static class Registrations
             (style, provider) => new NumberInputConverter<float>(style, provider));
 
 
-        return Task.FromResult((IAsyncDisposable)new Shutdown());
+        return Task.FromResult<IAsyncDisposable>(new Shutdown());
     }
 
     private static void ValidateConfig(Configuration config)

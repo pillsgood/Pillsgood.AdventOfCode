@@ -26,7 +26,7 @@ public static class PuzzleInputServiceMixins
         await using var stream = await inputService.GetInputStreamAsync(date);
         using var reader = new StreamReader(stream, Encoding.UTF8);
         var converter = Locator.Current.GetRequiredService<IPuzzleInputConverter<T>>();
-        return await converter.ConvertAsync(reader);
+        return converter.Convert(reader);
     }
 
     public static IEnumerable<T> Get<T>(
@@ -56,6 +56,6 @@ public static class PuzzleInputServiceMixins
         var converterFactory = Locator.Current.GetRequiredService<NumberConverterFactory<T>>();
 
         var converter = converterFactory(style, formatProvider);
-        return await converter.ConvertAsync(reader);
+        return converter.Convert(reader);
     }
 }

@@ -22,10 +22,4 @@ internal class NumberInputConverter<T> : IPuzzleInputConverter<IEnumerable<T>> w
         var input = _converter.Convert(reader);
         return input.Select(x => T.Parse(x, _style, _formatProvider));
     }
-
-    public async ValueTask<IEnumerable<T>> ConvertAsync(TextReader reader)
-    {
-        var input = await _converter.ConvertAsync(reader);
-        return input.Select(x => T.Parse(x, _style, _formatProvider));
-    }
 }

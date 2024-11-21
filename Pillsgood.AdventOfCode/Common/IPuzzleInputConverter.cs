@@ -1,7 +1,6 @@
 namespace Pillsgood.AdventOfCode.Common;
 
-internal interface IPuzzleInputConverter<TOutput>
+public interface IPuzzleInputConverter<out TOutput>
 {
     TOutput Convert(TextReader reader);
-    ValueTask<TOutput> ConvertAsync(TextReader reader);
 }
