@@ -13,7 +13,7 @@ internal static class MetadataResolver
     {
         var type = frame.GetMethod()!.DeclaringType;
 
-        type.Should().NotBeNull().And.BeAssignableTo<AocFixture>();
+        type.Should().NotBeNull().And.BeDecoratedWithOrInherit<AocFixtureAttribute>();
 
         var fullname = type!.FullName!;
         fullname.Should().NotBeNullOrEmpty("Type name cannot be null or empty.");
