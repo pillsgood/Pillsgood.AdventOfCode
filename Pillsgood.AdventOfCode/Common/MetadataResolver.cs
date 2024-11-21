@@ -91,7 +91,7 @@ internal static class MetadataResolver
             }
 
             var type = method.DeclaringType;
-            if (!type?.IsAssignableTo(typeof(AocFixture)) ?? true)
+            if (type is null || !type.IsDefined(typeof(AocFixtureAttribute), true))
             {
                 continue;
             }

@@ -3,6 +3,7 @@ using Splat;
 
 namespace Pillsgood.AdventOfCode;
 
+[AocFixture]
 public abstract class AocFixture
 {
     private readonly Lazy<IPuzzleInputService> _inputService =
