@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using NeoSmart.Caching.Sqlite;
 using Pillsgood.AdventOfCode.Common;
@@ -22,7 +23,10 @@ public static class Aoc
 
         Batteries_V2.Init();
         services.AddSqliteCache(config.CachePath, null!);
-        services.AddHybridCache();
+        services.AddHybridCache(opt =>
+        {
+            opt.DefaultEntryOptions = new HybridCacheEntryOptions { Expiration = null };
+        });
 
         services.AddSingleton(config);
 
