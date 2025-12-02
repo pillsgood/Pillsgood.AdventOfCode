@@ -25,7 +25,7 @@ public static class Aoc
         services.AddSqliteCache(config.CachePath, null!);
         services.AddHybridCache(opt =>
         {
-            opt.DefaultEntryOptions = new HybridCacheEntryOptions { Expiration = null };
+            opt.DefaultEntryOptions = new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(30) };
         });
 
         services.AddSingleton(config);
