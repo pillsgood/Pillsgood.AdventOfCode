@@ -21,7 +21,7 @@ public static class Aoc
         configure(config);
 
         Batteries_V2.Init();
-        services.AddSqliteCache("store.db", null!);
+        services.AddSqliteCache(config.CachePath, null!);
         services.AddHybridCache();
 
         services.AddSingleton(config);

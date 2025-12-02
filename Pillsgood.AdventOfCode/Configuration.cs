@@ -16,6 +16,8 @@ public class Configuration
 
     public required Assembly EntryAssembly { get; set; }
 
+    public string CachePath { get; set; } = "store.db";
+
     public Configuration WithSession(string session)
     {
         _serviceCollection.AddSingleton<ISessionProvider>(_ => new StaticSessionProvider(session));
@@ -37,6 +39,12 @@ public class Configuration
     public Configuration AddInputConverter<T>(Func<IPuzzleInputConverter<T>> factory)
     {
         _serviceCollection.AddSingleton<IPuzzleInputConverter<T>>(_ => factory());
+        return this;
+    }
+
+    public Configuration WithCachePath(string path)
+    {
+        CachePath = path;
         return this;
     }
 }
