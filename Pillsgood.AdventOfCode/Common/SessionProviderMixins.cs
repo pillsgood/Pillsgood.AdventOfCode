@@ -2,12 +2,15 @@ namespace Pillsgood.AdventOfCode.Common;
 
 internal static class SessionProviderMixins
 {
-    public static async ValueTask<IDictionary<string, string>> GetHeadersAsync(this ISessionProvider sessionProvider)
+    extension(ISessionProvider sessionProvider)
     {
-        var session = await sessionProvider.GetSessionAsync();
-        return new Dictionary<string, string>()
+        public async ValueTask<IDictionary<string, string>> GetHeadersAsync()
         {
-            ["cookie"] = $"session={session}"
-        };
+            var session = await sessionProvider.GetSessionAsync();
+            return new Dictionary<string, string>()
+            {
+                ["cookie"] = $"session={session}"
+            };
+        }
     }
 }
