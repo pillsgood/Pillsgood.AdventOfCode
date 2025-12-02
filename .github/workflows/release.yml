@@ -33,7 +33,7 @@ jobs:
       run: dotnet restore
       
     - name: Build
-      run: msbuild /t:build,pack /nowarn:MSB4011 /p:NoPackageAnalysis=true /verbosity:minimal /p:Configuration=Release
+      run: dotnet pack --configuration Release --verbosity minimal --no-restore /p:NoPackageAnalysis=true /nowarn:MSB4011
     
     - name: Create Release
       uses: actions/create-release@v1.1.4
