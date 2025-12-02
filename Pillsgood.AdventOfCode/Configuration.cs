@@ -33,4 +33,10 @@ public class Configuration
         EntryAssembly = assembly;
         return this;
     }
+
+    public Configuration AddInputConverter<T>(Func<IPuzzleInputConverter<T>> factory)
+    {
+        _serviceCollection.AddSingleton<IPuzzleInputConverter<T>>(_ => factory());
+        return this;
+    }
 }

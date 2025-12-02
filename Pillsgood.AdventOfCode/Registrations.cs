@@ -7,7 +7,7 @@ using SQLitePCL;
 
 namespace Pillsgood.AdventOfCode;
 
-public static class Registrations
+public static class Aoc
 {
     public static IDisposable Start(Action<Configuration> configure)
     {
