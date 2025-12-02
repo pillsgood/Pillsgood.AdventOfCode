@@ -10,94 +10,96 @@ Built for use with NUnit but probably works with other test frameworks too.
 
 ### Quick start (NUnit)
 
-1) Add a one-time startup/teardown to your test assembly to initialize the library.
+1) Add NuGet package `Pillsgood.AdventOfCode` to project.
+   - Optionally, add `Pillsgood.AdventOfCode.Login` for interactive login.
+2) Add a one-time startup/teardown to your test assembly to initialize the library.
 
-```csharp
-using NUnit.Framework;
-using Pillsgood.AdventOfCode;
-using Pillsgood.AdventOfCode.Login; // only if you want the login UI
-
-[SetUpFixture]
-public sealed class AdventSetup
-{
-    private IDisposable? _app;
-
-    [OneTimeSetUp]
-    public void Start()
+    ```csharp
+    using NUnit.Framework;
+    using Pillsgood.AdventOfCode;
+    using Pillsgood.AdventOfCode.Login; // only if you want the login UI
+    
+    [SetUpFixture]
+    public sealed class AdventSetup
     {
-        _app = Aoc.Start(cfg =>
+        private IDisposable? _app;
+    
+        [OneTimeSetUp]
+        public void Start()
         {
-            // Choose ONE of the following:
-
-            // 1) Provide a session cookie directly:
-            // cfg.WithSession("your_session_cookie_here");
-
-            // 2) Or use the interactive login window (from Pillsgood.AdventOfCode.Login):
-            // cfg.WithLogin();
-
-            // Optional: only needed if your tests run from a helper assembly (probs works)
-            // cfg.SetEntryAssembly(typeof(AdventSetup).Assembly);
-            
-            // Optional: you can add additional puzzle input converters here 
-            // cfg.AddInputConverter<SampleType>(() => new SampleTypeInputConverter())
-        });
+            _app = Aoc.Start(cfg =>
+            {
+                // Choose ONE of the following:
+    
+                // 1) Provide a session cookie directly:
+                // cfg.WithSession("your_session_cookie_here");
+    
+                // 2) Or use the interactive login window (from Pillsgood.AdventOfCode.Login):
+                // cfg.WithLogin();
+    
+                // Optional: only needed if your tests run from a helper assembly (probs works)
+                // cfg.SetEntryAssembly(typeof(AdventSetup).Assembly);
+                
+                // Optional: you can add additional puzzle input converters here 
+                // cfg.AddInputConverter<SampleType>(() => new SampleTypeInputConverter())
+            });
+        }
+    
+        [OneTimeTearDown]
+        public void Stop()
+        {
+            _app?.Dispose();
+        }
     }
+    ```
 
-    [OneTimeTearDown]
-    public void Stop()
-    {
-        _app?.Dispose();
-    }
-}
-```
-
-2) Create test classes that inherit from `AocFixture`, and follow the naming conventions below. Use `Input` to read puzzle input and `Answer` to
+3) Create test classes that inherit from `AocFixture`, and follow the naming conventions below. Use `Input` to read puzzle input and `Answer` to
    submit/validate.
 
-```csharp
-using NUnit.Framework;
-using Pillsgood.AdventOfCode;
-
-// Class name (or namespace) must include the year and day (see Naming Conventions)
-namespace Y2024
-{
-    public class Day01Tests : AocFixture
+    ```csharp
+    using NUnit.Framework;
+    using Pillsgood.AdventOfCode;
+    
+    // Class name (or namespace) must include the year and day (see Naming Conventions)
+    namespace Y2024
     {
-        [Test]
-        public void Part1()
+        public class Day01Tests : AocFixture
         {
-            var lines = Input.Get<IEnumerable<string>>();
-
-            var result = SolvePart1(lines);
-
-            // Validates against your previously accepted answer (or submits if new)
-            Answer.Submit(result);
-        }
-
-        [Test]
-        public void Part2()
-        {
-            var numbers = Input.Get<int>(System.Globalization.NumberStyles.Integer);
-
-            var result = SolvePart2(numbers);
-
-            Answer.Submit(result);
-        }
-
-        private static int SolvePart1(IEnumerable<string> lines)
-        {
-            // your solution here
-            return lines.Count();
-        }
-
-        private static long SolvePart2(IEnumerable<int> nums)
-        {
-            // your solution here
-            return nums.Select(n => (long)n).Sum();
+            [Test]
+            public void Part1()
+            {
+                var lines = Input.Get<IEnumerable<string>>();
+    
+                var result = SolvePart1(lines);
+    
+                // Validates against your previously accepted answer (or submits if new)
+                Answer.Submit(result);
+            }
+    
+            [Test]
+            public void Part2()
+            {
+                var numbers = Input.Get<int>(System.Globalization.NumberStyles.Integer);
+    
+                var result = SolvePart2(numbers);
+    
+                Answer.Submit(result);
+            }
+    
+            private static int SolvePart1(IEnumerable<string> lines)
+            {
+                // your solution here
+                return lines.Count();
+            }
+    
+            private static long SolvePart2(IEnumerable<int> nums)
+            {
+                // your solution here
+                return nums.Select(n => (long)n).Sum();
+            }
         }
     }
-}
-```
+    ```
 
 ---
 
