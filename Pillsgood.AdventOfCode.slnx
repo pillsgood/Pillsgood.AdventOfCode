@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/misc/">
+    <File Path=".github/workflows/release.yml" />
+    <File Path="Directory.build.props" />
+    <File Path="LICENSE.md" />
+    <File Path="README.md" />
+    <File Path="version.json" />
+  </Folder>
+  <Project Path="Pillsgood.AdventOfCode.Login/Pillsgood.AdventOfCode.Login.csproj" />
+  <Project Path="Pillsgood.AdventOfCode/Pillsgood.AdventOfCode.csproj" />
+</Solution>

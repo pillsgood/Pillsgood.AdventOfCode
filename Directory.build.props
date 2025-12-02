@@ -2,8 +2,12 @@
   <PropertyGroup>
     <PackageTags>AdventOfCode</PackageTags>
   </PropertyGroup>
+  <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory).\LICENSE.md" Pack="true" PackagePath="LICENSE" />
+    <None Include="$(MSBuildThisFileDirectory).\README.md" Pack="true" PackagePath="README.md"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" Version="3.9.50" Condition="!Exists('packages.config')">
