@@ -18,13 +18,13 @@ public class Configuration
 
     public Configuration WithSession(string session)
     {
-        _serviceCollection.AddSingleton(_ => new StaticSessionProvider(session));
+        _serviceCollection.AddSingleton<ISessionProvider>(_ => new StaticSessionProvider(session));
         return this;
     }
 
     public Configuration WithSessionProvider(Func<ISessionProvider> factory)
     {
-        _serviceCollection.AddSingleton(factory);
+        _serviceCollection.AddSingleton<ISessionProvider>(_ => factory());
         return this;
     }
 
