@@ -1,36 +1,37 @@
-using System.Reactive.Linq;
-using Akavache;
-using FluentAssertions;
+using AwesomeAssertions;
+using Microsoft.Extensions.Caching.Hybrid;
 using SoftCircuits.HtmlMonkey;
-using Splat;
 
 namespace Pillsgood.AdventOfCode.Common;
 
 internal class AnswerService : IAnswerService
 {
     private readonly HttpService _httpService;
+    private readonly HybridCache _cache;
 
-    public AnswerService()
+    public AnswerService(HttpService httpService, HybridCache cache)
     {
-        _httpService = Locator.Current.GetRequiredService<HttpService>();
+        _httpService = httpService;
+        _cache = cache;
     }
 
     public async Task<string?> GetKnownAnswer(DateOnly date, int part)
     {
         try
         {
-            return await BlobCache.LocalMachine.GetOrFetchObject(GetKey(date, part), FetchFunc);
+            var key = GetKey(date, part);
+            return await _cache.GetOrCreateAsync(key, FetchFunc);
         }
         catch (KeyNotFoundException)
         {
             return string.Empty;
         }
 
-        async Task<string> FetchFunc()
+        async ValueTask<string> FetchFunc(CancellationToken cancellationToken)
         {
             var uri = UriFactory.GetPuzzle(date);
             var html = await _httpService.GetStringAsync(uri);
-            var document = HtmlDocument.FromHtml(html);
+            var document = await HtmlDocument.FromHtmlAsync(html);
             var answers = HtmlParserService.FindAnswers(document);
 
             var answer = string.Empty;
@@ -51,7 +52,7 @@ internal class AnswerService : IAnswerService
     public async Task SubmitAnswer(DateOnly date, int part, string answer)
     {
         var key = GetKey(date, part);
-        var previous = await BlobCache.LocalMachine.GetObject<string>(key).Catch(Observable.Return(string.Empty));
+        var previous = await _cache.GetAsync<string>(key);
 
         if (!string.IsNullOrEmpty(previous))
         {
@@ -66,10 +67,10 @@ internal class AnswerService : IAnswerService
             ["answer"] = answer
         });
 
-        var document = HtmlDocument.FromHtml(html);
+        var document = await HtmlDocument.FromHtmlAsync(html);
         if (HtmlParserService.IsAnswerCorrect(document))
         {
-            await BlobCache.LocalMachine.InsertObject(key, answer);
+            await _cache.SetAsync(key, answer);
             return;
         }
 

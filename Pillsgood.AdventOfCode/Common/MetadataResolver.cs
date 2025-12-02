@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
-using FluentAssertions;
-using Splat;
+using AwesomeAssertions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Pillsgood.AdventOfCode.Common;
 
 internal static class MetadataResolver
 {
-    private static readonly Lazy<Configuration> Config = new(() => Locator.Current.GetRequiredService<Configuration>());
+    private static readonly Lazy<Configuration> _config = new(() => Locator.Current.GetRequiredService<Configuration>());
 
     private static bool TryResolveDate(StackFrame frame, out DateOnly date)
     {
@@ -81,7 +81,7 @@ internal static class MetadataResolver
         var frames = stackTrace.GetFrames();
         frames.Should().NotBeNullOrEmpty();
 
-        var entry = Config.Value.EntryAssembly;
+        var entry = _config.Value.EntryAssembly;
         foreach (var frame in frames)
         {
             var method = frame.GetMethod();

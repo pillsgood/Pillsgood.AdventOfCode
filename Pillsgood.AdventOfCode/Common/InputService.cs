@@ -1,17 +1,17 @@
-using System.Reactive.Linq;
-using Akavache;
-using FluentAssertions;
-using Splat;
+using AwesomeAssertions;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Pillsgood.AdventOfCode.Common;
 
 internal class InputService : IPuzzleInputService
 {
-    private readonly ISessionProvider _sessionProvider;
+    private readonly HttpService _httpService;
+    private readonly HybridCache _cache;
 
-    public InputService()
+    public InputService(HttpService httpService, HybridCache cache)
     {
-        _sessionProvider = Locator.Current.GetRequiredService<ISessionProvider>();
+        _httpService = httpService;
+        _cache = cache;
     }
 
     public async Task<Stream> GetInputStreamAsync(DateOnly date)
@@ -20,8 +20,7 @@ internal class InputService : IPuzzleInputService
 
         var uri = UriFactory.GetPuzzleInput(date);
 
-        var headers = await _sessionProvider.GetHeadersAsync();
-        var data = await BlobCache.LocalMachine.DownloadUrl(uri, headers);
+        var data = await _cache.GetOrCreateAsync($"{uri}", async ct => await _httpService.GetAsync(uri, ct));
 
         return new MemoryStream(data);
     }

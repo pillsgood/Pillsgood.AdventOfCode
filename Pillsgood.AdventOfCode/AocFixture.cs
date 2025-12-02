@@ -1,5 +1,5 @@
-﻿using Pillsgood.AdventOfCode.Common;
-using Splat;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Pillsgood.AdventOfCode.Common;
 
 namespace Pillsgood.AdventOfCode;
 

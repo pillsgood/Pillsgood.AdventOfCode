@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Numerics;
-using Splat;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Pillsgood.AdventOfCode.Common.InputConverters;
 

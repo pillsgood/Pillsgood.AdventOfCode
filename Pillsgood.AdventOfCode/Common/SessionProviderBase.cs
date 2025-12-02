@@ -1,20 +1,21 @@
-﻿using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using Akavache;
+﻿using AwesomeAssertions;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.DependencyInjection;
 using SoftCircuits.HtmlMonkey;
 
 namespace Pillsgood.AdventOfCode.Common;
 
 internal abstract class SessionProviderBase : ISessionProvider
 {
-    protected virtual IScheduler? Scheduler { get; } = default;
+    private readonly HybridCache _cache = Locator.Current.GetRequiredService<HybridCache>();
+
     protected abstract string? GetSession();
 
     private async Task ValidateSession(string? session)
     {
         if (string.IsNullOrWhiteSpace(session))
         {
-            await BlobCache.Secure.Invalidate("session");
+            await _cache.RemoveAsync("session");
         }
 
         using var httpClient = new HttpClient();
@@ -25,33 +26,27 @@ internal abstract class SessionProviderBase : ISessionProvider
             return;
         }
 
-        var document = HtmlDocument.FromHtml(page);
+        var document = await HtmlDocument.FromHtmlAsync(page);
         if (!document.Find("head > title").Any(x => x.Text.Contains("Log In", StringComparison.OrdinalIgnoreCase)))
         {
-            await BlobCache.Secure.Invalidate("session");
+            await _cache.RemoveAsync("session");
         }
     }
 
-    public async Task<string> GetSessionAsync()
+    public async Task<string> GetSessionAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var previous = await BlobCache.Secure.GetObject<string>("session");
+            var previous = await _cache.GetAsync<string>("session", cancellationToken: cancellationToken);
             await ValidateSession(previous);
         }
         catch (KeyNotFoundException)
         {
         }
 
-        var session = await BlobCache.Secure.GetOrFetchObject("session",
-            () => Observable.Defer(() => Observable.Return(GetSession()))
-                .SubscribeOn(Scheduler ?? System.Reactive.Concurrency.Scheduler.Default));
+        var session = await _cache.GetOrCreateAsync("session", _ => ValueTask.FromResult(GetSession()), cancellationToken: cancellationToken);
 
-        if (string.IsNullOrEmpty(session))
-        {
-            throw new InvalidOperationException("Session is empty.");
-        }
-
+        session.Should().NotBeNullOrWhiteSpace();
 
         return session;
     }

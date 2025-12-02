@@ -1,17 +1,13 @@
-using Splat;
-
 namespace Pillsgood.AdventOfCode.Common;
 
 internal class HttpService
 {
     private readonly Lazy<Task<HttpClient>> _httpClientFactory;
 
-    public HttpService()
+    public HttpService(HttpClient httpClient, ISessionProvider sessionProvider)
     {
         _httpClientFactory = new Lazy<Task<HttpClient>>(async () =>
         {
-            var httpClient = Locator.Current.GetRequiredService<HttpClient>();
-            var sessionProvider = Locator.Current.GetRequiredService<ISessionProvider>();
             var headers = await sessionProvider.GetHeadersAsync();
             foreach (var (key, value) in headers)
             {
@@ -22,17 +18,23 @@ internal class HttpService
         });
     }
 
-    public async Task<string> GetStringAsync(Uri uri)
+    public async Task<byte[]> GetAsync(Uri uri, CancellationToken cancellationToken = default)
     {
         var httpClient = await _httpClientFactory.Value;
-        return await httpClient.GetStringAsync(uri);
+        return await httpClient.GetByteArrayAsync(uri, cancellationToken);
     }
 
-    public async Task<string> PostAsync(Uri uri, IDictionary<string, string> form)
+    public async Task<string> GetStringAsync(Uri uri, CancellationToken cancellationToken = default)
     {
         var httpClient = await _httpClientFactory.Value;
-        var response = await httpClient.PostAsync(uri, new FormUrlEncodedContent(form)).EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+        return await httpClient.GetStringAsync(uri, cancellationToken);
+    }
+
+    public async Task<string> PostAsync(Uri uri, IDictionary<string, string> form, CancellationToken cancellationToken = default)
+    {
+        var httpClient = await _httpClientFactory.Value;
+        var response = await httpClient.PostAsync(uri, new FormUrlEncodedContent(form), cancellationToken).EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync(cancellationToken);
     }
 }
 

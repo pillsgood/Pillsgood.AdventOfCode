@@ -2,8 +2,8 @@
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Pillsgood.AdventOfCode.Common;
-using Splat;
 
 namespace Pillsgood.AdventOfCode;
 

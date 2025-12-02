@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
-using FluentAssertions;
+using AwesomeAssertions;
 using Pillsgood.AdventOfCode.Common;
 
 namespace Pillsgood.AdventOfCode;

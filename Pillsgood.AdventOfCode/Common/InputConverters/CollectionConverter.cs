@@ -1,4 +1,4 @@
-﻿using Splat;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Pillsgood.AdventOfCode.Common.InputConverters;
 

@@ -1,5 +1,5 @@
-using FluentAssertions;
-using Splat;
+using AwesomeAssertions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Pillsgood.AdventOfCode.Common;
 

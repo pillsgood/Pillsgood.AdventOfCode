@@ -1,37 +1,30 @@
 using System.Reflection;
-using Newtonsoft.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Pillsgood.AdventOfCode.Common;
-using Splat;
 
 namespace Pillsgood.AdventOfCode;
 
 public class Configuration
 {
-    [JsonIgnore] public Assembly EntryAssembly { get; private set; }
+    private readonly ServiceCollection _serviceCollection;
 
-    public string? ApplicationName { get; private set; } = Assembly.GetEntryAssembly()?.FullName;
-
-    public Configuration(Assembly entryAssembly)
+    public Configuration(
+        ServiceCollection serviceCollection)
     {
-        EntryAssembly = entryAssembly;
+        _serviceCollection = serviceCollection;
     }
 
-    public Configuration WithApplicationName(string applicationName)
-    {
-        ApplicationName = applicationName;
-        return this;
-    }
+    public required Assembly EntryAssembly { get; set; }
 
     public Configuration WithSession(string session)
     {
-        var provider = new Lazy<ISessionProvider>(() => new StaticSessionProvider(session));
-        Locator.CurrentMutable.Register(() => provider.Value);
+        _serviceCollection.AddSingleton(_ => new StaticSessionProvider(session));
         return this;
     }
 
     public Configuration WithSessionProvider(Func<ISessionProvider> factory)
     {
-        Locator.CurrentMutable.RegisterLazySingleton(factory);
+        _serviceCollection.AddSingleton(factory);
         return this;
     }
 
