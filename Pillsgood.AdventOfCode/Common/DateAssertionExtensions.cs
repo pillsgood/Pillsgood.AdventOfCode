@@ -2,7 +2,7 @@ using AwesomeAssertions.Primitives;
 
 namespace Pillsgood.AdventOfCode.Common;
 
-internal static class DateAssertionMixins
+internal static class DateAssertionExtensions
 {
     extension(DateOnlyAssertions date)
     {

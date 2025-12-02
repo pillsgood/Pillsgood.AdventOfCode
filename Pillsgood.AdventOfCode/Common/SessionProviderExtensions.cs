@@ -1,6 +1,6 @@
 namespace Pillsgood.AdventOfCode.Common;
 
-internal static class SessionProviderMixins
+internal static class SessionProviderExtensions
 {
     extension(ISessionProvider sessionProvider)
     {
