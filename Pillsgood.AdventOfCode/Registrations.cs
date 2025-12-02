@@ -22,6 +22,7 @@ public static class Registrations
 
         Batteries_V2.Init();
         services.AddSqliteCache("store.db", null!);
+        services.AddHybridCache();
 
         services.AddSingleton(config);
 
