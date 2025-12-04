@@ -30,6 +30,7 @@ public static class Aoc
 
         services.AddSingleton(config);
 
+        services.AddSingleton<SessionService>();
         services.AddSingleton<HttpClient>();
         services.AddSingleton<HttpService>();
 
