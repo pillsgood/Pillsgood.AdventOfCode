@@ -21,8 +21,13 @@ public static class Aoc
 
         configure(config);
 
+        var cachePath = Path.GetFullPath(config.CachePath);
+        var cacheDir = Path.GetDirectoryName(cachePath) ?? throw new InvalidOperationException("Unable to get cache directory.");
+
+        if (!Directory.Exists(cacheDir)) Directory.CreateDirectory(cacheDir);
+
         Batteries_V2.Init();
-        services.AddSqliteCache(config.CachePath, null!);
+        services.AddSqliteCache(cachePath, null!);
         services.AddHybridCache(opt =>
         {
             opt.DefaultEntryOptions = new HybridCacheEntryOptions { Expiration = TimeSpan.FromDays(30) };
