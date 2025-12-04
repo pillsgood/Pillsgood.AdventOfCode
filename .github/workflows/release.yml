@@ -29,11 +29,8 @@ jobs:
       with:
         setAllVars: true
 
-    - name: Restore dependencies
-      run: dotnet restore
-      
     - name: Build
-      run: dotnet pack --artifacts-path "./.artifacts" --configuration Release --verbosity minimal --no-restore /p:NoPackageAnalysis=true /nowarn:MSB4011
+      run: dotnet pack --artifacts-path "./.artifacts" --configuration Release --verbosity minimal /p:NoPackageAnalysis=true /nowarn:MSB4011
     
     - name: Create Release
       uses: actions/create-release@v1.1.4
