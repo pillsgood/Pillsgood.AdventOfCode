@@ -8,7 +8,29 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Pillsgood.AdventOfCode\Pillsgood.AdventOfCode.csproj" />
+    <ProjectReference Include="..\Pillsgood.AdventOfCode\Pillsgood.AdventOfCode.csproj"/>
+    <ProjectReference Include="..\Pillsgood.AdventOfCode.Login.App\Pillsgood.AdventOfCode.Login.App.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeAssets>None</IncludeAssets>
+    </ProjectReference>
   </ItemGroup>
+
+  <Target Name="PublishLoginApp" BeforeTargets="GenerateNuspec">
+    <MSBuild Projects="..\Pillsgood.AdventOfCode.Login.App\Pillsgood.AdventOfCode.Login.App.csproj"
+             Targets="Publish"
+             Properties="Configuration=$(Configuration);PublishDir=$(MSBuildThisFileDirectory)temp-publish\"/>
+  </Target>
+
+  <Target Name="IncludeLoginApp" DependsOnTargets="PublishLoginApp" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="$(MSBuildThisFileDirectory)temp-publish\Pillsgood.AdventOfCode.Login.App.exe"
+            Pack="true"
+            PackagePath="runtimes/win-x64/native/"/>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CleanupPublish" AfterTargets="Pack">
+    <RemoveDir Directories="$(MSBuildThisFileDirectory)temp-publish"/>
+  </Target>
 
 </Project>
