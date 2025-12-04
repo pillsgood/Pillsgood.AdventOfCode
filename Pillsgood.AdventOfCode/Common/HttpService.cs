@@ -4,11 +4,11 @@ internal class HttpService
 {
     private readonly Lazy<Task<HttpClient>> _httpClientFactory;
 
-    public HttpService(HttpClient httpClient, ISessionProvider sessionProvider)
+    public HttpService(HttpClient httpClient, SessionService session)
     {
         _httpClientFactory = new Lazy<Task<HttpClient>>(async () =>
         {
-            var headers = await sessionProvider.GetHeadersAsync();
+            var headers = await session.GetHeadersAsync();
             foreach (var (key, value) in headers)
             {
                 httpClient.DefaultRequestHeaders.Add(key, value);

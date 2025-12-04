@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using System;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
@@ -9,7 +11,7 @@ using Pillsgood.AdventOfCode.Login.ViewModels;
 
 namespace Pillsgood.AdventOfCode.Login;
 
-internal class SessionProvider : SessionProviderBase
+internal class SessionProvider : ISessionProvider
 {
     [STAThread]
     private static void Execute() => BuildAvaloniaApp()
@@ -21,23 +23,26 @@ internal class SessionProvider : SessionProviderBase
             .LogToTrace()
             .UseReactiveUI();
 
-    protected override string? GetSession()
+    public async ValueTask<string?> GetSessionAsync(CancellationToken cancellationToken = default)
     {
-        var session = string.Empty;
+        var tcs = new TaskCompletionSource<string?>();
 
         CookieVisitor.SessionCookieVisited
             .Where(static x => !string.IsNullOrEmpty(x.Value))
             .Subscribe(cookie =>
             {
-                session = cookie.Value;
                 if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                 {
-                    Dispatcher.UIThread.Post(() => lifetime.Shutdown());
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        lifetime.Shutdown();
+                        tcs.TrySetResult(cookie.Value);
+                    });
                 }
             });
 
         Execute();
 
-        return session;
+        return await tcs.Task;
     }
 }

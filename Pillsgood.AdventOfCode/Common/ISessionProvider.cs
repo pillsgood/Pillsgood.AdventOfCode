@@ -2,5 +2,5 @@ namespace Pillsgood.AdventOfCode.Common;
 
 public interface ISessionProvider
 {
-    Task<string> GetSessionAsync(CancellationToken cancellationToken = default);
+    ValueTask<string?> GetSessionAsync(CancellationToken cancellationToken = default);
 }

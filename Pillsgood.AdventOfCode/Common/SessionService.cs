@@ -1,15 +1,19 @@
 ﻿using AwesomeAssertions;
 using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.Extensions.DependencyInjection;
 using SoftCircuits.HtmlMonkey;
 
 namespace Pillsgood.AdventOfCode.Common;
 
-internal abstract class SessionProviderBase : ISessionProvider
+internal sealed class SessionService
 {
-    private readonly HybridCache _cache = Locator.Current.GetRequiredService<HybridCache>();
+    private readonly HybridCache _cache;
+    private readonly ISessionProvider _sessionProvider;
 
-    protected abstract string? GetSession();
+    public SessionService(HybridCache cache, ISessionProvider sessionProvider)
+    {
+        _cache = cache;
+        _sessionProvider = sessionProvider;
+    }
 
     private async Task ValidateSession(string? session)
     {
@@ -44,7 +48,7 @@ internal abstract class SessionProviderBase : ISessionProvider
         {
         }
 
-        var session = await _cache.GetOrCreateAsync("session", _ => ValueTask.FromResult(GetSession()), cancellationToken: cancellationToken);
+        var session = await _cache.GetOrCreateAsync("session", _sessionProvider.GetSessionAsync, cancellationToken: cancellationToken);
 
         session.Should().NotBeNullOrWhiteSpace();
 

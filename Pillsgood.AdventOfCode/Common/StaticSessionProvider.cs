@@ -9,8 +9,8 @@ internal class StaticSessionProvider : ISessionProvider
         _session = session;
     }
 
-    public Task<string> GetSessionAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<string?> GetSessionAsync(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(_session);
+        return await Task.FromResult(_session);
     }
 }

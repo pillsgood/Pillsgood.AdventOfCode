@@ -1,8 +1,8 @@
 namespace Pillsgood.AdventOfCode.Common;
 
-internal static class SessionProviderExtensions
+internal static class SessionServiceExtensions
 {
-    extension(ISessionProvider sessionProvider)
+    extension(SessionService sessionProvider)
     {
         public async ValueTask<IDictionary<string, string>> GetHeadersAsync()
         {
