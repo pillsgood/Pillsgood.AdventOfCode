@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/misc/">
-    <File Path=".github/workflows/release.yml" />
+    <File Path=".github/workflows/release_adventofcode.yml" />
+    <File Path=".github/workflows/release_adventofcode_login.yml" />
     <File Path="Directory.build.props" />
     <File Path="LICENSE.md" />
     <File Path="README.md" />

@@ -1,16 +1,22 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET
+name: Release Pillsgood.AdventOfCode
 
 on:
   push:
+    paths:
+      - ./*
+      - ./Pillsgood.AdventOfCode/**
     branches: [ "main" ]
 
 jobs:
   release:
     name: build, pack and publish
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./Pillsgood.AdventOfCode
     outputs:
       nbgv: ${{ steps.nbgv.outputs.SemVer2 }}
     steps:
@@ -44,5 +50,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ steps.nbgv.outputs.SemVer2 }}
-          release_name: ${{ steps.nbgv.outputs.SemVer2 }}
+          tag_name: "Pillsgood.AdventOfCode/${{ steps.nbgv.outputs.SemVer2 }}"
+          release_name: "Pillsgood.AdventOfCode ${{ steps.nbgv.outputs.SemVer2 }}"

@@ -1,0 +1,55 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Release Pillsgood.AdventOfCode.Login
+
+on:
+  push:
+    paths:
+      - ./*
+      - ./Pillsgood.AdventOfCode.Login/**
+      - ./Pillsgood.AdventOfCode.Login.App/**
+    branches: [ "main" ]
+
+jobs:
+  release:
+    name: build, pack and publish
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./Pillsgood.AdventOfCode.Login
+    outputs:
+      nbgv: ${{ steps.nbgv.outputs.SemVer2 }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Git Versioning
+        id: nbgv
+        uses: dotnet/nbgv@master
+        with:
+          setAllVars: true
+
+      - name: Build
+        run: dotnet pack --artifacts-path "./.artifacts" --configuration Release --verbosity minimal /p:NoPackageAnalysis=true /nowarn:MSB4011
+
+      - name: NuGet Push
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
+          SOURCE_URL: https://api.nuget.org/v3/index.json
+        run: |
+          dotnet nuget push -s ${{ env.SOURCE_URL }} -k ${{ env.NUGET_AUTH_TOKEN }} **/*.nupkg
+
+      - name: Create Release
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: "Pillsgood.AdventOfCode.Login/${{ steps.nbgv.outputs.SemVer2 }}"
+          release_name: "Pillsgood.AdventOfCode.Login ${{ steps.nbgv.outputs.SemVer2 }}"
