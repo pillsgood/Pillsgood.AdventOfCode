@@ -1,18 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Pillsgood.AdventOfCode.Common;
+﻿using Pillsgood.AdventOfCode.Common;
 
 namespace Pillsgood.AdventOfCode;
 
 [AocFixture]
 public abstract class AocFixture
 {
-    private readonly Lazy<IPuzzleInputService> _inputService =
-        new(static () => Locator.Current.GetRequiredService<IPuzzleInputService>());
+    protected static IAnswerAssertion Answer => field ??= Locator.GetRequiredService<IAnswerAssertion>();
 
-    private readonly Lazy<IAnswerAssertion> _assertion =
-        new(static () => Locator.Current.GetRequiredService<IAnswerAssertion>());
-
-    protected IPuzzleInputService Input => _inputService.Value;
-
-    protected IAnswerAssertion Answer => _assertion.Value;
+    protected static IPuzzleInputService Input => field ??= Locator.GetRequiredService<IPuzzleInputService>();
 }
