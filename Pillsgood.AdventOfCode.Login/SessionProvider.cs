@@ -1,48 +1,56 @@
-﻿using Avalonia;
-using System;
-using System.Reactive.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.ReactiveUI;
-using Avalonia.Threading;
+using System.Diagnostics;
 using Pillsgood.AdventOfCode.Common;
-using Pillsgood.AdventOfCode.Login.ViewModels;
 
 namespace Pillsgood.AdventOfCode.Login;
 
-internal class SessionProvider : ISessionProvider
+internal sealed class SessionProvider : ISessionProvider
 {
-    [STAThread]
-    private static void Execute() => BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(Array.Empty<string>());
-
-    private static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .LogToTrace()
-            .UseReactiveUI();
-
     public async ValueTask<string?> GetSessionAsync(CancellationToken cancellationToken = default)
     {
-        var tcs = new TaskCompletionSource<string?>();
+        var hostPath = HostLocator.FindHost();
 
-        CookieVisitor.SessionCookieVisited
-            .Where(static x => !string.IsNullOrEmpty(x.Value))
-            .Subscribe(cookie =>
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = hostPath,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            RedirectStandardInput = false,
+            CreateNoWindow = true,
+        };
+
+        using var process = new Process();
+        process.StartInfo = startInfo;
+        process.EnableRaisingEvents = true;
+
+        try
+        {
+            if (!process.Start()) throw new Exception("Unable to start login app.");
+
+            await using var stdout = process.StandardOutput.BaseStream;
+            using var reader = new StreamReader(stdout);
+
+            var line = await reader.ReadLineAsync(cancellationToken);
+
+            _ = process.WaitForExitAsync(CancellationToken.None);
+
+            if (line?.StartsWith("session=") is not true)
+                throw new Exception("Invalid response from login app.");
+
+            return line[8..];
+        }
+        catch (OperationCanceledException)
+        {
+            try
             {
-                if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-                {
-                    Dispatcher.UIThread.Post(() =>
-                    {
-                        lifetime.Shutdown();
-                        tcs.TrySetResult(cookie.Value);
-                    });
-                }
-            });
+                if (!process.HasExited) process.Kill(entireProcessTree: true);
+            }
+            catch
+            {
+                /* ignore */
+            }
 
-        Execute();
-
-        return await tcs.Task;
+            throw;
+        }
     }
 }

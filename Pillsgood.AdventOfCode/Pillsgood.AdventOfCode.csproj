@@ -15,7 +15,6 @@
     <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3" Version="3.0.2" PrivateAssets="compile"/>
     <PackageReference Include="SoftCircuits.HtmlMonkey" Version="3.1.0" PrivateAssets="compile"/>
     <PackageReference Include="SourceGear.sqlite3" Version="3.50.4.5" PrivateAssets="compile"/>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.9.50"/>
   </ItemGroup>
 
 </Project>
