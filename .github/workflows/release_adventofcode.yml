@@ -6,8 +6,8 @@ name: Release Pillsgood.AdventOfCode
 on:
   push:
     paths:
-      - ./*
-      - ./Pillsgood.AdventOfCode/**
+      - '*'
+      - 'Pillsgood.AdventOfCode/**'
     branches: [ "main" ]
 
 jobs:

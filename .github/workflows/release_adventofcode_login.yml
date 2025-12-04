@@ -6,9 +6,9 @@ name: Release Pillsgood.AdventOfCode.Login
 on:
   push:
     paths:
-      - ./*
-      - ./Pillsgood.AdventOfCode.Login/**
-      - ./Pillsgood.AdventOfCode.Login.App/**
+      - '*'
+      - 'Pillsgood.AdventOfCode.Login/**'
+      - 'Pillsgood.AdventOfCode.Login.App/**'
     branches: [ "main" ]
 
 jobs:
