@@ -11,7 +11,7 @@ Built for use with NUnit but probably works with other test frameworks too.
 ### Quick start (NUnit)
 
 1) Add NuGet package `Pillsgood.AdventOfCode` to project.
-   - Optionally, add `Pillsgood.AdventOfCode.Login` for interactive login.
+   - Optionally, add `Pillsgood.AdventOfCode.Login` for interactive login (currently win-x64 only).
 2) Add a one-time startup/teardown to your test assembly to initialize the library.
 
     ```csharp
@@ -176,7 +176,7 @@ You must authenticate once so the library can fetch inputs and submit answers.
 
 Pick one in `Aoc.Start(cfg => ...)`:
 
-- `cfg.WithSession("<session_cookie>")` — pass your AoC session cookie directly (great for CI/local). The cookie value is the `session` cookie from
+- `cfg.WithSession("<session_cookie>")` — pass your AoC session cookie directly. The cookie value is the `session` cookie from
   `adventofcode.com`.
 - `cfg.WithLogin()` (from `Pillsgood.AdventOfCode.Login`) — shows a low-effort Avalonia login window to acquire and cache the session.
 
@@ -192,7 +192,7 @@ again (or you’ll need to provide a valid cookie).
 ```csharp
 var app = Aoc.Start(cfg =>
 {
-    // 1) Provide a session cookie directly (recommended for CI/local)
+    // 1) Provide a session cookie directly
     cfg.WithSession("your_session_cookie_here");
 
     // 2) Or provide a custom session provider
