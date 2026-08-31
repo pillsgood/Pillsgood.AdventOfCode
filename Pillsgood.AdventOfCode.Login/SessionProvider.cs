@@ -31,8 +31,7 @@ internal sealed class SessionProvider : ISessionProvider
             using var reader = new StreamReader(stdout);
 
             var line = await reader.ReadLineAsync(cancellationToken);
-
-            _ = process.WaitForExitAsync(CancellationToken.None);
+            await process.WaitForExitAsync(CancellationToken.None);
 
             if (process.ExitCode is not 0)
                 throw new Exception("Login app exited with non-zero exit code.");
