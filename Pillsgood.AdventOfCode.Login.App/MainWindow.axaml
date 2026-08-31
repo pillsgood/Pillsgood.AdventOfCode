@@ -2,16 +2,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:webViewControl="clr-namespace:WebViewControl;assembly=WebViewControl.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Pillsgood.AdventOfCode.Login.App.MainWindow"
         Title="Pillsgood.AdventOfCode.Login">
-
     <Panel>
-        <webViewControl:WebView
-            x:Name="WebView"
-            IsVisible="True"
-            Address="https://adventofcode.com/auth/login" />
+        <NativeWebView x:Name="WebView"
+                       IsVisible="True"
+                       Source="https://adventofcode.com/auth/login" />
         <TextBlock
             x:Name="CompletionMessage"
             IsVisible="False"

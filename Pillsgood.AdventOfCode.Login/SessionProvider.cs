@@ -34,6 +34,9 @@ internal sealed class SessionProvider : ISessionProvider
 
             _ = process.WaitForExitAsync(CancellationToken.None);
 
+            if (process.ExitCode is not 0)
+                throw new Exception("Login app exited with non-zero exit code.");
+
             if (line?.StartsWith("session=") is not true)
                 throw new Exception("Invalid response from login app.");
 
