@@ -90,7 +90,7 @@ internal static partial class MetadataResolver
                 continue;
             }
 
-            if (HasDefinedAttribute(method.DeclaringType))
+            if (!HasDefinedAttribute(method.DeclaringType))
             {
                 continue;
             }
