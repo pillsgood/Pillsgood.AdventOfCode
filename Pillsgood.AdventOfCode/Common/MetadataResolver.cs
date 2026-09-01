@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Pillsgood.AdventOfCode.Common;
 
-internal static class MetadataResolver
+internal static partial class MetadataResolver
 {
     private static readonly Lazy<Configuration> _config = new(() => Locator.Current.GetRequiredService<Configuration>());
 
@@ -13,9 +13,9 @@ internal static class MetadataResolver
     {
         var type = frame.GetMethod()!.DeclaringType;
 
-        type.Should().NotBeNull().And.BeDecoratedWithOrInherit<AocFixtureAttribute>();
+        type.Should().NotBeNull();
 
-        var fullname = type!.FullName!;
+        var fullname = type.FullName!;
         fullname.Should().NotBeNullOrEmpty("Type name cannot be null or empty.");
 
         if (MatchYear(fullname) is not { } year)
@@ -45,7 +45,7 @@ internal static class MetadataResolver
             return false;
         }
 
-        value.Should().BeOneOf(new[] { 1, 2 }, "part should be 0 or 1");
+        value.Should().BeOneOf([1, 2], "part should be 0 or 1");
         part = value;
         return true;
     }
@@ -90,8 +90,7 @@ internal static class MetadataResolver
                 continue;
             }
 
-            var type = method.DeclaringType;
-            if (type is null || !type.IsDefined(typeof(AocFixtureAttribute), true))
+            if (HasDefinedAttribute(method.DeclaringType))
             {
                 continue;
             }
@@ -100,7 +99,11 @@ internal static class MetadataResolver
         }
     }
 
-    private static readonly Regex YearPattern = new("20(1[6-9]|[2-9][0-9])", RegexOptions.IgnoreCase);
+    private static bool HasDefinedAttribute(Type? type) =>
+        type != null && (type.IsDefined(typeof(AocFixtureAttribute), true) || HasDefinedAttribute(type.DeclaringType));
+
+    [GeneratedRegex("20(1[6-9]|[2-9][0-9])", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex YearPattern { get; }
 
     private static int? MatchYear(string value)
     {
@@ -113,7 +116,8 @@ internal static class MetadataResolver
         return null;
     }
 
-    private static readonly Regex DayPattern = new(@"Day(\d+)", RegexOptions.IgnoreCase);
+    [GeneratedRegex(@"Day(\d+)", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex DayPattern { get; }
 
     private static int? MatchDay(string value)
     {
@@ -126,7 +130,8 @@ internal static class MetadataResolver
         return null;
     }
 
-    private static readonly Regex PartPattern = new(@"Part(\d+)", RegexOptions.IgnoreCase);
+    [GeneratedRegex(@"Part(\d+)", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex PartPattern { get; }
 
     private static int? MatchPart(string value)
     {
