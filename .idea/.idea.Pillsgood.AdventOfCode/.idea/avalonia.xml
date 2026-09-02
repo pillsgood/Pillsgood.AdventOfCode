@@ -3,6 +3,7 @@
   <component name="AvaloniaProject">
     <option name="projectPerEditor">
       <map>
+        <entry key="Pillsgood.AdventOfCode.Login.App/App.axaml" value="Pillsgood.AdventOfCode.Login.App/Pillsgood.AdventOfCode.Login.App.csproj" />
         <entry key="Pillsgood.AdventOfCode.Login.App/MainWindow.axaml" value="Pillsgood.AdventOfCode.Login.App/Pillsgood.AdventOfCode.Login.App.csproj" />
       </map>
     </option>

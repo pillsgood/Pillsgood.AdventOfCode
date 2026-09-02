@@ -8,5 +8,6 @@
   </Folder>
   <Project Path="Pillsgood.AdventOfCode.Login.App/Pillsgood.AdventOfCode.Login.App.csproj" />
   <Project Path="Pillsgood.AdventOfCode.Login/Pillsgood.AdventOfCode.Login.csproj" />
+  <Project Path="Pillsgood.AdventOfCode.Tests/Pillsgood.AdventOfCode.Tests.csproj" />
   <Project Path="Pillsgood.AdventOfCode/Pillsgood.AdventOfCode.csproj" />
 </Solution>

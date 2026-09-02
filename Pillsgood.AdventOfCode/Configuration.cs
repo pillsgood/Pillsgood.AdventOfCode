@@ -36,9 +36,9 @@ public class Configuration
         return this;
     }
 
-    public Configuration AddInputConverter<T>(Func<IPuzzleInputConverter<T>> factory)
+    public Configuration AddInputConverter<TSource, TDestination>(Func<IInputConverter<TSource, TDestination>> factory)
     {
-        _serviceCollection.AddSingleton<IPuzzleInputConverter<T>>(_ => factory());
+        _serviceCollection.AddSingleton<IInputConverter<TSource, TDestination>>(_ => factory());
         return this;
     }
 
